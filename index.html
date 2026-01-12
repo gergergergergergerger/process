@@ -23,7 +23,8 @@
         #canvas:active {
             cursor: grabbing;
         }
-        /* Панель управления */
+        
+        /* 1.1 Стили панели управления */
         #controls {
             position: absolute;
             top: 15px;
@@ -76,7 +77,8 @@
             max-width: 180px;
             font-weight: 500;
         }
-        /* Всплывающее окно описания элемента */
+        
+        /* 1.2 Стили всплывающего окна */
         .element-popup {
             position: absolute;
             top: 50%;
@@ -116,7 +118,8 @@
             cursor: pointer;
             font-weight: 500;
         }
-        /* Адаптивность */
+        
+        /* 1.3 Адаптивность */
         @media (max-width: 768px) {
             #controls {
                 top: 10px;
@@ -156,7 +159,6 @@
                 font-size: 11px;
                 max-width: 100px;
             }
-            /* Автоскрытие панели на телефоне */
             #controls.auto-hide {
                 opacity: 0.3;
             }
@@ -169,17 +171,18 @@
 </head>
 <body>
     <div id="canvas"></div>
-    <!-- Панель управления -->
+    
+    <!-- 1.4 Панель управления -->
     <div id="controls">
-        <button onclick="zoomIn()" title="Увеличить">➕</button>
-        <button onclick="zoomOut()" title="Уменьшить">➖</button>
-        <button onclick="resetView()" title="Сбросить вид">🗘</button>
-        <button onclick="enterFullscreen()" title="На весь экран">⛶</button>
+        <button onclick="F6_1_zoomIn()" title="Увеличить">➕</button>
+        <button onclick="F6_2_zoomOut()" title="Уменьшить">➖</button>
+        <button onclick="F6_3_resetView()" title="Сбросить вид">🗘</button>
+        <button onclick="F6_4_enterFullscreen()" title="На весь экран">⛶</button>
         <span id="status">Загрузка...</span>
     </div>
 
     <script>
-        // === КОНФИГУРАЦИЯ ===
+        // ==================== 2. КОНФИГУРАЦИЯ ====================
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             zoom: {
@@ -191,26 +194,29 @@
             padding: 25
         };
 
-        // === ОСНОВНЫЕ ПЕРЕМЕННЫЕ ===
+        // ==================== 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
         let viewer = null;
         let elementDescriptions = {};
         let touchZoomData = { initialDistance: 0, initialZoom: 1 };
         let hideControlsTimer = null;
 
-        // === ИНИЦИАЛИЗАЦИЯ ===
-        function initViewer() {
+        // ==================== 4. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ====================
+        
+        // 4.1 Инициализация просмотрщика
+        function F4_1_initViewer() {
             viewer = new BpmnJS({ container: '#canvas' });
-            loadDescriptions();
-            setupEventListeners();
+            F8_1_loadDescriptions();
+            F10_1_setupEventListeners();
             
-            // Автоскрытие панели на телефонах
             if (window.innerWidth <= 480) {
                 document.getElementById('controls').classList.add('auto-hide');
             }
         }
 
-        // === ЗАГРУЗКА СХЕМЫ ===
-        async function loadDiagram() {
+        // ==================== 5. ФУНКЦИИ ЗАГРУЗКИ СХЕМЫ ====================
+        
+        // 5.1 Основная функция загрузки схемы
+        async function F5_1_loadDiagram() {
             const urlParams = new URLSearchParams(window.location.search);
             const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
             const statusElement = document.getElementById('status');
@@ -223,7 +229,7 @@
                 await viewer.importXML(xml);
                 statusElement.textContent = diagramFileName;
                 viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
-                setupElementClick();
+                F9_1_setupElementClick();
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
                 statusElement.textContent = 'Ошибка';
@@ -237,8 +243,10 @@
             }
         }
 
-                // === ЗУМ ОТНОСИТЕЛЬНО ЦЕНТРА ЭКРАНА ===
-        function zoomWithCursor(zoomDelta) {
+        // ==================== 6. ФУНКЦИИ УПРАВЛЕНИЯ МАСШТАБОМ ====================
+        
+        // 6.1 Зум относительно центра экрана
+        function F6_1_zoomWithCursor(zoomDelta) {
             const canvas = viewer.get('canvas');
             const currentZoom = canvas.zoom();
             const viewport = canvas.viewbox();
@@ -254,11 +262,11 @@
                 x: centerX, 
                 y: centerY 
             });
-            showControlsTemporarily();
+            F11_1_showControlsTemporarily();
         }
 
-        // === УПРАВЛЕНИЕ МАСШТАБОМ ===
-        function zoomIn() {
+        // 6.2 Увеличить (кнопка +)
+        function F6_1_zoomIn() {
             const canvas = viewer.get('canvas');
             const viewbox = canvas.viewbox();
             const newZoom = Math.min(CONFIG.zoom.max, 
@@ -267,10 +275,11 @@
                 x: viewbox.x + viewbox.width / 2,
                 y: viewbox.y + viewbox.height / 2
             });
-            showControlsTemporarily();
+            F11_1_showControlsTemporarily();
         }
         
-        function zoomOut() {
+        // 6.3 Уменьшить (кнопка -)
+        function F6_2_zoomOut() {
             const canvas = viewer.get('canvas');
             const viewbox = canvas.viewbox();
             const newZoom = Math.max(CONFIG.zoom.min, 
@@ -279,22 +288,26 @@
                 x: viewbox.x + viewbox.width / 2,
                 y: viewbox.y + viewbox.height / 2
             });
-            showControlsTemporarily();
+            F11_1_showControlsTemporarily();
         }
         
-        function resetView() {
+        // 6.4 Сбросить вид
+        function F6_3_resetView() {
             viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
-            showControlsTemporarily();
+            F11_1_showControlsTemporarily();
         }
         
-        function enterFullscreen() {
+        // 6.5 Полноэкранный режим
+        function F6_4_enterFullscreen() {
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
             }
         }
 
-        // === МУЛЬТИТАЧ ДЛЯ ТЕЛЕФОНОВ ===
-        function handleTouchZoom(e) {
+        // ==================== 7. ФУНКЦИИ МУЛЬТИТАЧА (ТЕЛЕФОНЫ) ====================
+        
+        // 7.1 Обработка мультитач-зума
+        function F7_1_handleTouchZoom(e) {
             if (e.touches.length !== 2) return;
             e.preventDefault();
             
@@ -309,77 +322,118 @@
                 const newZoom = Math.max(CONFIG.zoom.min, 
                     Math.min(CONFIG.zoom.max, touchZoomData.initialZoom * scale));
                 
-                // Зум относительно центра экрана, а не точки касания
+                // Зум относительно центра экрана
                 const canvas = viewer.get('canvas');
                 const viewport = canvas.viewbox();
                 const screenCenterX = viewport.x + viewport.width / 2;
                 const screenCenterY = viewport.y + viewport.height / 2;
                 canvas.zoom(newZoom, { x: screenCenterX, y: screenCenterY });
             }
-            showControlsTemporarily();
+            F11_1_showControlsTemporarily();
         }
 
-        // === НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ ===
-        function setupEventListeners() {
+        // ==================== 8. ФУНКЦИИ КОНТЕКСТНЫХ ОПИСАНИЙ ====================
+        
+        // 8.1 Загрузка описаний из JSON
+        async function F8_1_loadDescriptions() {
+            try {
+                const response = await fetch('descriptions.json');
+                elementDescriptions = await response.json();
+            } catch {
+                console.info('Файл описаний не загружен');
+            }
+        }
+
+        // 8.2 Показать информацию об элементе
+        function F8_2_showElementInfo(elementId) {
+            const info = elementDescriptions.elements?.[elementId];
+            if (!info) {
+                alert(`Элемент: ${elementId}\nОписание отсутствует.`);
+                return;
+            }
+            
+            const popup = document.createElement('div');
+            popup.className = 'element-popup';
+            popup.innerHTML = `
+                <h3>${info.name || 'Элемент'}</h3>
+                ${info.description ? `<p><strong>Описание:</strong> ${info.description}</p>` : ''}
+                ${info.responsible ? `<p><strong>Ответственный:</strong> ${info.responsible}</p>` : ''}
+                ${info.deadline ? `<p><strong>Срок:</strong> ${info.deadline}</p>` : ''}
+                ${info.type ? `<p><strong>Тип:</strong> ${info.type}</p>` : ''}
+                <p><small style="color:#777;">ID: ${elementId}</small></p>
+                <button class="close" onclick="this.closest('.element-popup').remove()">Закрыть</button>
+            `;
+            
+            document.body.appendChild(popup);
+            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+        }
+
+        // ==================== 9. ФУНКЦИИ ОБРАБОТКИ КЛИКОВ ====================
+        
+        // 9.1 Настройка обработки кликов по элементам
+        function F9_1_setupElementClick() {
+            viewer.on('element.click', e => {
+                const type = e.element.type;
+                if (type.includes('Task') || type.includes('Gateway')) {
+                    F8_2_showElementInfo(e.element.id);
+                }
+            });
+        }
+
+        // ==================== 10. ФУНКЦИИ ОБРАБОТЧИКОВ СОБЫТИЙ ====================
+        
+        // 10.1 Настройка всех обработчиков событий
+        function F10_1_setupEventListeners() {
             const canvas = document.getElementById('canvas');
             
-            // Колесико мыши (зум относительно центра)
+            // 10.1.1 Колесико мыши
             canvas.addEventListener('wheel', e => {
                 e.preventDefault();
-                zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse);
+                F6_1_zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse);
             }, { passive: false });
             
-            // Касания
+            // 10.1.2 Касания (телефоны)
             canvas.addEventListener('touchstart', e => {
-                if (e.touches.length === 2) handleTouchZoom(e);
-                showControlsTemporarily();
+                if (e.touches.length === 2) F7_1_handleTouchZoom(e);
+                F11_1_showControlsTemporarily();
             });
             canvas.addEventListener('touchmove', e => {
-                if (e.touches.length === 2) handleTouchZoom(e);
+                if (e.touches.length === 2) F7_1_handleTouchZoom(e);
             });
             canvas.addEventListener('touchend', () => {
                 touchZoomData.initialDistance = 0;
             });
             
-            // Показ панели при движении мыши
+            // 10.1.3 Показ панели при движении мыши
             document.addEventListener('mousemove', () => {
-                if (window.innerWidth <= 480) showControlsTemporarily();
+                if (window.innerWidth <= 480) F11_1_showControlsTemporarily();
             });
         }
 
-        // === НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ ===
-        function setupEventListeners() {
-            const canvas = document.getElementById('canvas');
-            
-            // Колесико мыши
-            canvas.addEventListener('wheel', e => {
-                e.preventDefault();
-                zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse, e.clientX, e.clientY);
-            }, { passive: false });
-            
-            // Касания
-            canvas.addEventListener('touchstart', e => {
-                if (e.touches.length === 2) handleTouchZoom(e);
-                showControlsTemporarily();
-            });
-            canvas.addEventListener('touchmove', e => {
-                if (e.touches.length === 2) handleTouchZoom(e);
-            });
-            canvas.addEventListener('touchend', () => {
-                touchZoomData.initialDistance = 0;
-            });
-            
-            // Показ панели при движении мыши
-            document.addEventListener('mousemove', () => {
-                if (window.innerWidth <= 480) showControlsTemporarily();
-            });
+        // ==================== 11. ФУНКЦИИ УПРАВЛЕНИЯ ПАНЕЛЬЮ ====================
+        
+        // 11.1 Временное отображение панели
+        function F11_1_showControlsTemporarily() {
+            const controls = document.getElementById('controls');
+            if (window.innerWidth <= 480) {
+                controls.classList.remove('auto-hide');
+                clearTimeout(hideControlsTimer);
+                hideControlsTimer = setTimeout(() => {
+                    controls.classList.add('auto-hide');
+                }, 3000);
+            }
         }
 
-        // === ЗАПУСК ПРИ ЗАГРУЗКЕ ===
-        window.addEventListener('DOMContentLoaded', () => {
-            initViewer();
-            loadDiagram();
-        });
+        // ==================== 12. ЗАПУСК ПРИЛОЖЕНИЯ ====================
+        
+        // 12.1 Главная функция запуска
+        function F12_1_startApplication() {
+            F4_1_initViewer();
+            F5_1_loadDiagram();
+        }
+
+        // 12.2 Запуск при загрузке DOM
+        window.addEventListener('DOMContentLoaded', F12_1_startApplication);
     </script>
 </body>
 </html>
