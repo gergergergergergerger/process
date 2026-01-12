@@ -11,97 +11,165 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
+            font-family: system-ui, -apple-system, sans-serif;
         }
         #canvas {
             width: 100%;
             height: 100%;
-            background: #f8f8f8;
+            background: #f9f9f9;
+            cursor: grab;
+            touch-action: none;
         }
-        /* Стили панели управления */
+        #canvas:active {
+            cursor: grabbing;
+        }
+        /* Панель управления */
         #controls {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 6px 8px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.94);
+            padding: 8px 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 4px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(0,0,0,0.1);
-            max-width: calc(100vw - 40px);
+            gap: 6px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 0, 0, 0.09);
+            max-width: calc(100vw - 50px);
             box-sizing: border-box;
+            transition: opacity 0.3s ease;
+        }
+        #controls.hidden {
+            opacity: 0.3;
         }
         #controls button {
             margin: 0;
-            padding: 8px 10px;
+            padding: 9px 12px;
             cursor: pointer;
-            border: 1px solid #d0d0d0;
-            border-radius: 6px;
-            background-color: #ffffff;
+            border: 1px solid #d4d4d4;
+            border-radius: 7px;
+            background: #ffffff;
             font-size: 18px;
             line-height: 1;
-            min-width: 0;
+            min-width: 40px;
             flex-shrink: 0;
-            transition: all 0.15s ease;
+            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         #controls button:hover {
-            background-color: #f0f0f0;
+            background: #f0f0f0;
             border-color: #a0a0a0;
             transform: translateY(-1px);
         }
         #status {
             margin-left: 10px;
-            color: #555;
+            color: #444;
             font-size: 13px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 180px;
+            font-weight: 500;
         }
-        /* Адаптивность для планшетов и телефонов */
+        /* Всплывающее окно описания элемента */
+        .element-popup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            max-width: 450px;
+            min-width: 320px;
+            border: 1px solid #ddd;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -48%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+        .element-popup h3 {
+            margin-top: 0;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 8px;
+        }
+        .element-popup p {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        .element-popup button.close {
+            margin-top: 15px;
+            padding: 8px 18px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        /* Адаптивность */
         @media (max-width: 768px) {
             #controls {
-                top: 6px;
-                left: 6px;
-                right: 6px;
-                padding: 5px 6px;
-                border-radius: 6px;
-                gap: 3px;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 7px 8px;
+                border-radius: 8px;
+                gap: 5px;
                 max-width: none;
-                width: calc(100vw - 12px);
+                width: calc(100vw - 20px);
             }
             #controls button {
-                padding: 6px 8px;
-                font-size: 16px;
-                flex: 1;
+                padding: 8px 10px;
+                font-size: 17px;
+                min-width: 36px;
             }
             #status {
-                font-size: 11px;
-                max-width: 120px;
-                margin-left: 6px;
+                font-size: 12px;
+                max-width: 140px;
+            }
+            .element-popup {
+                min-width: 280px;
+                padding: 20px;
             }
         }
         @media (max-width: 480px) {
+            #controls {
+                padding: 6px 7px;
+                gap: 4px;
+            }
             #controls button {
-                padding: 5px 6px;
-                font-size: 15px;
+                padding: 7px 9px;
+                font-size: 16px;
+                min-width: 34px;
             }
             #status {
-                display: none; /* Скрываем текст на маленьких экранах */
+                font-size: 11px;
+                max-width: 100px;
+            }
+            /* Автоскрытие панели на телефоне */
+            #controls.auto-hide {
+                opacity: 0.3;
+            }
+            #controls.auto-hide:hover,
+            #controls.auto-hide:active {
+                opacity: 1;
             }
         }
     </style>
 </head>
 <body>
     <div id="canvas"></div>
-    <!-- Панель управления с иконками -->
+    <!-- Панель управления -->
     <div id="controls">
         <button onclick="zoomIn()" title="Увеличить">➕</button>
         <button onclick="zoomOut()" title="Уменьшить">➖</button>
@@ -110,89 +178,108 @@
         <span id="status">Загрузка...</span>
     </div>
 
-        <script>
-        // 1. Инициализация просмотрщика
-        const viewer = new BpmnJS({
-            container: document.getElementById('canvas')
-        });
+    <script>
+        // === КОНФИГУРАЦИЯ ===
+        const CONFIG = {
+            defaultDiagram: '1zayavka.bpmn',
+            zoom: {
+                min: 0.15,
+                max: 5,
+                stepMouse: 0.0012,
+                stepButtons: 0.25
+            },
+            padding: 25
+        };
 
-        // 2. Получаем имя файла из параметра ?diagram= в URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const diagramFileName = urlParams.get('diagram') || '1zayavka.bpmn';
+        // === ОСНОВНЫЕ ПЕРЕМЕННЫЕ ===
+        let viewer = null;
+        let elementDescriptions = {};
+        let touchZoomData = { initialDistance: 0, initialZoom: 1 };
+        let hideControlsTimer = null;
 
-        // 3. Функция загрузки схемы
+        // === ИНИЦИАЛИЗАЦИЯ ===
+        function initViewer() {
+            viewer = new BpmnJS({ container: '#canvas' });
+            loadDescriptions();
+            setupEventListeners();
+            
+            // Автоскрытие панели на телефонах
+            if (window.innerWidth <= 480) {
+                document.getElementById('controls').classList.add('auto-hide');
+            }
+        }
+
+        // === ЗАГРУЗКА СХЕМЫ ===
         async function loadDiagram() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
             const statusElement = document.getElementById('status');
             statusElement.textContent = `Загрузка: ${diagramFileName}...`;
 
             try {
                 const response = await fetch(diagramFileName);
-                if (!response.ok) {
-                    throw new Error(`Файл не найден (ошибка ${response.status})`);
-                }
+                if (!response.ok) throw new Error(`Файл не найден (ошибка ${response.status})`);
                 const xml = await response.text();
                 await viewer.importXML(xml);
-                statusElement.textContent = `Схема: ${diagramFileName}`;
-                // Уменьшаем пустое пространство вокруг схемы
-                viewer.get('canvas').zoom('fit-viewport', { padding: 20 });
+                statusElement.textContent = diagramFileName;
+                viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
+                setupElementClick();
             } catch (error) {
-                console.error('Ошибка загрузки схемы:', error);
-                statusElement.textContent = 'Ошибка загрузки';
+                console.error('Ошибка загрузки:', error);
+                statusElement.textContent = 'Ошибка';
                 document.getElementById('canvas').innerHTML = `
                     <div style="padding:30px; text-align:center; color:#d00;">
                         <h3>Не удалось загрузить схему</h3>
                         <p>${error.message}</p>
-                        <p>Проверьте:<br>
-                        1. Файл <strong>${diagramFileName}</strong> в репозитории<br>
-                        2. Правильность имени файла в ссылке</p>
+                        <p>Проверьте имя файла в ссылке</p>
                     </div>
                 `;
             }
         }
 
-        // 4. Функции зума относительно курсора
+        // === ЗУМ ОТНОСИТЕЛЬНО КУРСОРА ===
         function zoomWithCursor(zoomDelta, clientX, clientY) {
             const canvas = viewer.get('canvas');
             const currentZoom = canvas.zoom();
-            
-            // Получаем позицию курсора относительно схемы
             const viewport = canvas.viewbox();
+            
             const x = (clientX - viewport.x) / currentZoom;
             const y = (clientY - viewport.y) / currentZoom;
             
-            // Новый масштаб
-            const newZoom = Math.max(0.2, Math.min(5, currentZoom * (1 + zoomDelta)));
-            canvas.zoom(newZoom, { x: x, y: y });
+            const newZoom = Math.max(CONFIG.zoom.min, 
+                Math.min(CONFIG.zoom.max, currentZoom * (1 + zoomDelta)));
+            canvas.zoom(newZoom, { x, y });
+            showControlsTemporarily();
         }
 
-        // 5. Обработчик колесика мыши с зумом относительно курсора
-        document.getElementById('canvas').addEventListener('wheel', function(event) {
-            event.preventDefault();
-            const zoomDelta = -event.deltaY * 0.001; // Чувствительность
-            zoomWithCursor(zoomDelta, event.clientX, event.clientY);
-        });
-
-        // 6. Адаптивные кнопки (вызывают зум относительно центра)
+        // === УПРАВЛЕНИЕ МАСШТАБОМ ===
         function zoomIn() {
             const canvas = viewer.get('canvas');
             const viewbox = canvas.viewbox();
-            canvas.zoom(canvas.zoom() * 1.2, {
+            const newZoom = Math.min(CONFIG.zoom.max, 
+                canvas.zoom() * (1 + CONFIG.zoom.stepButtons));
+            canvas.zoom(newZoom, {
                 x: viewbox.x + viewbox.width / 2,
                 y: viewbox.y + viewbox.height / 2
             });
+            showControlsTemporarily();
         }
         
         function zoomOut() {
             const canvas = viewer.get('canvas');
             const viewbox = canvas.viewbox();
-            canvas.zoom(canvas.zoom() * 0.8, {
+            const newZoom = Math.max(CONFIG.zoom.min, 
+                canvas.zoom() * (1 - CONFIG.zoom.stepButtons));
+            canvas.zoom(newZoom, {
                 x: viewbox.x + viewbox.width / 2,
                 y: viewbox.y + viewbox.height / 2
             });
+            showControlsTemporarily();
         }
         
         function resetView() {
-            viewer.get('canvas').zoom('fit-viewport', { padding: 20 });
+            viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
+            showControlsTemporarily();
         }
         
         function enterFullscreen() {
@@ -201,8 +288,116 @@
             }
         }
 
-        // 7. Загружаем схему при старте
-        window.addEventListener('DOMContentLoaded', loadDiagram);
+        // === МУЛЬТИТАЧ ДЛЯ ТЕЛЕФОНОВ ===
+        function handleTouchZoom(e) {
+            if (e.touches.length !== 2) return;
+            e.preventDefault();
+            
+            const t1 = e.touches[0], t2 = e.touches[1];
+            const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            
+            if (touchZoomData.initialDistance === 0) {
+                touchZoomData.initialDistance = currentDist;
+                touchZoomData.initialZoom = viewer.get('canvas').zoom();
+            } else {
+                const scale = currentDist / touchZoomData.initialDistance;
+                const newZoom = Math.max(CONFIG.zoom.min, 
+                    Math.min(CONFIG.zoom.max, touchZoomData.initialZoom * scale));
+                const centerX = (t1.clientX + t2.clientX) / 2;
+                const centerY = (t1.clientY + t2.clientY) / 2;
+                
+                viewer.get('canvas').zoom(newZoom, { x: centerX, y: centerY });
+            }
+            showControlsTemporarily();
+        }
+
+        // === КОНТЕКСТНЫЕ ОПИСАНИЯ ЭЛЕМЕНТОВ ===
+        async function loadDescriptions() {
+            try {
+                const response = await fetch('descriptions.json');
+                elementDescriptions = await response.json();
+            } catch {
+                console.info('Файл описаний не загружен');
+            }
+        }
+
+        function showElementInfo(elementId) {
+            const info = elementDescriptions.elements?.[elementId];
+            if (!info) {
+                alert(`Элемент: ${elementId}\nОписание отсутствует.`);
+                return;
+            }
+            
+            const popup = document.createElement('div');
+            popup.className = 'element-popup';
+            popup.innerHTML = `
+                <h3>${info.name || 'Элемент'}</h3>
+                ${info.description ? `<p><strong>Описание:</strong> ${info.description}</p>` : ''}
+                ${info.responsible ? `<p><strong>Ответственный:</strong> ${info.responsible}</p>` : ''}
+                ${info.deadline ? `<p><strong>Срок:</strong> ${info.deadline}</p>` : ''}
+                ${info.type ? `<p><strong>Тип:</strong> ${info.type}</p>` : ''}
+                <p><small style="color:#777;">ID: ${elementId}</small></p>
+                <button class="close" onclick="this.closest('.element-popup').remove()">Закрыть</button>
+            `;
+            
+            document.body.appendChild(popup);
+            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+        }
+
+        function setupElementClick() {
+            viewer.on('element.click', e => {
+                const type = e.element.type;
+                if (type.includes('Task') || type.includes('Gateway')) {
+                    showElementInfo(e.element.id);
+                }
+            });
+        }
+
+        // === УПРАВЛЕНИЕ ПАНЕЛЬЮ ===
+        function showControlsTemporarily() {
+            const controls = document.getElementById('controls');
+            if (window.innerWidth <= 480) {
+                controls.classList.remove('auto-hide');
+                clearTimeout(hideControlsTimer);
+                hideControlsTimer = setTimeout(() => {
+                    controls.classList.add('auto-hide');
+                }, 3000);
+            }
+        }
+
+        // === НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ ===
+        function setupEventListeners() {
+            const canvas = document.getElementById('canvas');
+            
+            // Колесико мыши
+            canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse, e.clientX, e.clientY);
+            }, { passive: false });
+            
+            // Касания
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) handleTouchZoom(e);
+                showControlsTemporarily();
+            });
+            canvas.addEventListener('touchmove', e => {
+                if (e.touches.length === 2) handleTouchZoom(e);
+            });
+            canvas.addEventListener('touchend', () => {
+                touchZoomData.initialDistance = 0;
+            });
+            
+            // Показ панели при движении мыши
+            document.addEventListener('mousemove', () => {
+                if (window.innerWidth <= 480) showControlsTemporarily();
+            });
+        }
+
+        // === ЗАПУСК ПРИ ЗАГРУЗКЕ ===
+        window.addEventListener('DOMContentLoaded', () => {
+            initViewer();
+            loadDiagram();
+        });
     </script>
 </body>
 </html>
