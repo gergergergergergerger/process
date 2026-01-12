@@ -156,6 +156,7 @@
                 max: 10,
                 step: 0.2,
                 wheelStep: 0.002
+                dragMultiplier: 1.5 // множитель скорости перетаскивания
             },
             padding: 40
         };
@@ -230,7 +231,7 @@
             }
         }
 
-        // ===== ПЕРЕТАСКИВАНИЕ (простое и рабочее) =====
+                // ===== ПЕРЕТАСКИВАНИЕ (быстрое и динамичное) =====
         function setupDragging() {
             const canvas = document.getElementById('canvas');
             let isDragging = false;
@@ -253,10 +254,10 @@
                 const dx = e.clientX - lastX;
                 const dy = e.clientY - lastY;
                 
-                // Прокручиваем схему
+                // Более быстрое перетаскивание (множитель 1.5)
                 viewer.get('canvas').scroll({ 
-                    dx: -dx / currentZoom, 
-                    dy: -dy / currentZoom 
+                    dx: -dx / currentZoom * 1.5, 
+                    dy: -dy / currentZoom * 1.5
                 });
                 
                 lastX = e.clientX;
@@ -267,6 +268,43 @@
                 isDragging = false;
                 canvas.classList.remove('grabbing');
             });
+        }
+
+        // ===== МАСШТАБИРОВАНИЕ КОЛЁСИКОМ (исправленное) =====
+        function handleWheel(e) {
+            e.preventDefault();
+            
+            // Коэффициент чувствительности (можно регулировать)
+            const sensitivity = 0.002;
+            
+            // Определяем направление и силу прокрутки
+            const delta = e.deltaY > 0 ? -1 : 1; // вниз = уменьшение, вверх = увеличение
+            
+            // Учитываем скорость прокрутки
+            const speed = Math.min(Math.abs(e.deltaY), 100) / 100;
+            
+            // Вычисляем изменение масштаба
+            const zoomChange = delta * sensitivity * speed * 15;
+            
+            // Новый масштаб
+            const targetZoom = currentZoom * (1 + zoomChange);
+            
+            // Получаем позицию курсора на схеме
+            const canvas = viewer.get('canvas');
+            const viewbox = canvas.viewbox();
+            
+            // Координаты курсора относительно схемы
+            const pointX = (e.clientX - viewbox.x) / currentZoom;
+            const pointY = (e.clientY - viewbox.y) / currentZoom;
+            
+            // Ограничиваем масштаб
+            const newZoom = Math.max(CONFIG.zoom.min, 
+                Math.min(CONFIG.zoom.max, targetZoom));
+            
+            // Применяем зум относительно курсора
+            canvas.zoom(newZoom, { x: pointX, y: pointY });
+            currentZoom = newZoom;
+            updateZoomIndicator();
         }
 
         // ===== ЗАГРУЗКА СХЕМЫ =====
@@ -303,7 +341,7 @@
         function setupEventListeners() {
             const canvas = document.getElementById('canvas');
             
-            // Колесико
+                        // Колесико - только зум
             canvas.addEventListener('wheel', handleWheel, { passive: false });
             
             // Перетаскивание
