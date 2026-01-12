@@ -4,24 +4,14 @@
     <title>BPMN Схема</title>
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@14/dist/assets/bpmn-js.css">
     <script src="https://unpkg.com/bpmn-js@14/dist/bpmn-navigated-viewer.development.js"></script>
-    <!-- Material Icons -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" />
-    <!-- Шрифт Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #2563eb;
+            --primary-color: #3a86ff;
             --surface-color: #ffffff;
-            --text-primary: #1f2937;
-            --text-secondary: #6b7280;
-            --border-color: #e5e7eb;
-            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --text-primary: #1a1a1a;
+            --border-color: #e0e0e0;
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
             --radius-md: 10px;
-            --radius-sm: 8px;
         }
 
         * {
@@ -34,34 +24,32 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: 'Inter', sans-serif;
-            font-weight: 400;
-            background: #f9fafb;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f5f5f5;
         }
 
-        /* 1.1 Контейнер схемы */
+        /* Контейнер схемы */
         #canvas-container {
             width: 100%;
             height: 100%;
             position: relative;
+            background: var(--surface-color);
         }
 
         #canvas {
             width: 100%;
             height: 100%;
             cursor: grab;
-            background: var(--surface-color);
-            touch-action: none;
         }
 
         #canvas.grabbing {
             cursor: grabbing;
         }
 
-        /* 1.2 Основная панель управления */
+        /* Панель управления - простой вариант */
         #controls {
             position: fixed;
-            top: 16px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             background: var(--surface-color);
@@ -71,83 +59,45 @@
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             border: 1px solid var(--border-color);
-            transition: all 0.15s ease;
-            min-width: 320px;
+            min-width: 300px;
             max-width: 400px;
         }
 
-        /* 1.3 Кнопки */
         .control-btn {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-sm);
+            border-radius: 8px;
             background: transparent;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s ease;
-            position: relative;
-            padding: 0;
-        }
-
-        .control-btn .material-icon {
-            font-family: 'Material Symbols Rounded';
-            font-weight: 400;
             font-size: 18px;
-            color: var(--text-primary);
-            transition: inherit;
+            transition: all 0.2s ease;
         }
 
         .control-btn:hover {
             border-color: var(--primary-color);
-            background: rgba(37, 99, 235, 0.05);
-            transform: translateY(-1px);
-        }
-
-        .control-btn:hover .material-icon {
-            color: var(--primary-color);
+            background: rgba(58, 134, 255, 0.1);
         }
 
         .control-btn:active {
-            transform: translateY(0);
+            transform: scale(0.95);
         }
 
-        /* 1.4 Кнопка хоткеев с индикатором */
-        #hotkeys-btn {
-            position: relative;
-            width: 36px;
-            height: 36px;
-        }
-
-        #hotkeys-btn.has-hotkeys::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 6px;
-            height: 6px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            border: 2px solid var(--surface-color);
-        }
-
-        /* 1.5 Индикатор масштаба */
         #zoom-indicator {
             margin-left: 12px;
             padding: 6px 12px;
-            background: transparent;
+            font-size: 13px;
+            color: #666;
+            border: 1px solid var(--border-color);
             border-radius: 16px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
             display: flex;
             align-items: center;
             gap: 6px;
-            border: 1px solid var(--border-color);
         }
 
         #zoom-level {
@@ -157,467 +107,169 @@
             text-align: center;
         }
 
-        /* 1.6 Модальное окно хоткеев */
-        .hotkeys-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s ease;
-        }
-
-        .hotkeys-modal.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .hotkeys-content {
-            background: var(--surface-color);
-            border-radius: var(--radius-md);
-            padding: 24px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: var(--shadow-lg);
-            transform: translateY(-20px);
-            transition: transform 0.2s ease;
-        }
-
-        .hotkeys-modal.active .hotkeys-content {
-            transform: translateY(0);
-        }
-
-        .hotkeys-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .hotkeys-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .close-btn {
-            width: 32px;
-            height: 32px;
-            border: none;
-            background: transparent;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.15s ease;
-        }
-
-        .close-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-        .close-btn .material-icon {
-            font-size: 20px;
-            color: var(--text-secondary);
-        }
-
-        .hotkeys-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .hotkey-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: #f9fafb;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border-color);
-        }
-
-        .hotkey-description {
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .hotkey-keys {
-            display: flex;
-            gap: 4px;
-        }
-
-        .key {
-            padding: 4px 8px;
-            background: var(--surface-color);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--text-primary);
-            font-family: 'Inter', monospace;
-        }
-
-        .key.primary {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        /* 1.7 Адаптивность */
         @media (max-width: 640px) {
             #controls {
-                top: 12px;
+                top: 15px;
                 padding: 8px 12px;
                 min-width: 280px;
-                gap: 4px;
+                gap: 6px;
             }
             
             .control-btn {
-                width: 32px;
-                height: 32px;
-            }
-            
-            .control-btn .material-icon {
+                width: 36px;
+                height: 36px;
                 font-size: 16px;
             }
             
             #zoom-indicator {
-                margin-left: 8px;
-                padding: 4px 8px;
-                font-size: 11px;
+                font-size: 12px;
+                padding: 4px 10px;
             }
-            
-            .hotkeys-content {
-                padding: 20px;
-                width: 95%;
-            }
-        }
-
-        /* 1.8 Анимации */
-        .fade-in {
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -8px); }
-            to { opacity: 1; transform: translate(-50%, 0); }
         }
     </style>
 </head>
 <body>
-    <!-- 2.1 Контейнер схемы -->
+    <!-- Контейнер схемы -->
     <div id="canvas-container">
         <div id="canvas"></div>
         
-        <!-- 2.2 Основная панель управления -->
-        <div id="controls" class="fade-in">
-            <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">
-                <span class="material-icon">zoom_in</span>
-            </button>
-            <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">
-                <span class="material-icon">zoom_out</span>
-            </button>
-            <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">
-                <span class="material-icon">restart_alt</span>
-            </button>
-            <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">
-                <span class="material-icon" id="fullscreen-icon">fullscreen</span>
-            </button>
-            
-            <!-- Кнопка хоткеев -->
-            <button id="hotkeys-btn" class="control-btn" onclick="toggleHotkeysModal()" title="Горячие клавиши (?)">
-                <span class="material-icon">keyboard</span>
-            </button>
+        <!-- Панель управления -->
+        <div id="controls">
+            <button class="control-btn" onclick="zoomIn()" title="Увеличить">+</button>
+            <button class="control-btn" onclick="zoomOut()" title="Уменьшить">-</button>
+            <button class="control-btn" onclick="resetView()" title="Сбросить вид">↻</button>
+            <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран">⛶</button>
             
             <div id="zoom-indicator">
                 <span>Масштаб:</span>
                 <span id="zoom-level">100%</span>
             </div>
         </div>
-        
-        <!-- 2.3 Модальное окно хоткеев -->
-        <div id="hotkeys-modal" class="hotkeys-modal" onclick="closeModalOnOverlay(event)">
-            <div class="hotkeys-content">
-                <div class="hotkeys-header">
-                    <h2 class="hotkeys-title">Горячие клавиши</h2>
-                    <button class="close-btn" onclick="toggleHotkeysModal()">
-                        <span class="material-icon">close</span>
-                    </button>
-                </div>
-                <div class="hotkeys-list">
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Увеличить масштаб</span>
-                        <div class="hotkey-keys">
-                            <span class="key">Ctrl</span>
-                            <span class="key">+</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Уменьшить масштаб</span>
-                        <div class="hotkey-keys">
-                            <span class="key">Ctrl</span>
-                            <span class="key">-</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Сбросить вид</span>
-                        <div class="hotkey-keys">
-                            <span class="key primary">0</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Полный экран</span>
-                        <div class="hotkey-keys">
-                            <span class="key primary">F11</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Показать горячие клавиши</span>
-                        <div class="hotkey-keys">
-                            <span class="key primary">?</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Перетаскивание схемы</span>
-                        <div class="hotkey-keys">
-                            <span class="key primary">ЛКМ</span>
-                            <span class="key">+ перетаскивание</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span class="hotkey-description">Масштабирование колесиком</span>
-                        <div class="hotkey-keys">
-                            <span class="key primary">Колесико</span>
-                            <span class="key">вверх/вниз</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
-        // ==================== 3. КОНФИГУРАЦИЯ ====================
+        // ===== КОНФИГУРАЦИЯ =====
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             zoom: {
-                min: 0.05,
-                max: 20,
-                step: 0.25,
-                wheelSensitivity: 0.0015
-            }
+                min: 0.1,
+                max: 10,
+                step: 0.2,
+                wheelStep: 0.002
+            },
+            padding: 40
         };
 
-        // ==================== 4. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+        // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let viewer = null;
-        let isDragging = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
         let currentZoom = 1;
-        let activeHotkeys = new Set();
 
-        // ==================== 5. ИНИЦИАЛИЗАЦИЯ ====================
-        
+        // ===== ИНИЦИАЛИЗАЦИЯ =====
         function initViewer() {
             viewer = new BpmnJS({ 
                 container: '#canvas'
             });
             
             setupEventListeners();
-            setupKeyboardShortcuts();
         }
 
-        // ==================== 6. МАСШТАБИРОВАНИЕ КОЛЕСИКОМ ====================
+        // ===== МАСШТАБИРОВАНИЕ =====
         
-        // 6.1 Получить позицию курсора относительно схемы
-        function getCursorPosition(clientX, clientY) {
+        // 1. Масштабирование относительно курсора (просто и надежно)
+        function zoomAtCursor(zoomDelta, clientX, clientY) {
             const canvas = viewer.get('canvas');
             const viewbox = canvas.viewbox();
             
-            // Преобразуем координаты экрана в координаты схемы
-            const x = (clientX - viewbox.x) / currentZoom;
-            const y = (clientY - viewbox.y) / currentZoom;
+            // Координаты курсора относительно схемы
+            const pointX = (clientX - viewbox.x) / currentZoom;
+            const pointY = (clientY - viewbox.y) / currentZoom;
             
-            return { x, y };
-        }
-
-        // 6.2 Масштабирование относительно курсора
-        function zoomToCursor(targetZoom, clientX, clientY) {
-            const canvas = viewer.get('canvas');
-            const { x, y } = getCursorPosition(clientX, clientY);
+            // Новый масштаб
+            const newZoom = Math.max(CONFIG.zoom.min, 
+                Math.min(CONFIG.zoom.max, currentZoom * (1 + zoomDelta)));
             
-            // Ограничиваем масштаб
-            const clampedZoom = Math.max(CONFIG.zoom.min, 
-                Math.min(CONFIG.zoom.max, targetZoom));
-            
-            // Масштабируем относительно точки курсора
-            canvas.zoom(clampedZoom, { x, y });
-            currentZoom = clampedZoom;
+            // Применяем зум
+            canvas.zoom(newZoom, { x: pointX, y: pointY });
+            currentZoom = newZoom;
             updateZoomIndicator();
         }
 
-        // 6.3 Обработка колесика мыши - ТОЛЬКО ЗУМ
-        function handleWheelZoom(e) {
+        // 2. Обработка колесика мыши
+        function handleWheel(e) {
             e.preventDefault();
             
-            // Определяем направление и интенсивность прокрутки
-            const delta = e.deltaY > 0 ? -1 : 1;
-            const intensity = Math.min(Math.abs(e.deltaY) / 100, 3);
-            
-            // Рассчитываем новый масштаб
-            const zoomChange = CONFIG.zoom.wheelSensitivity * intensity * delta * 10;
-            const targetZoom = currentZoom * (1 + zoomChange);
-            
-            // Применяем зум относительно позиции курсора
-            zoomToCursor(targetZoom, e.clientX, e.clientY);
+            // Простой зум: вверх = увеличение, вниз = уменьшение
+            const delta = -e.deltaY * CONFIG.zoom.wheelStep;
+            zoomAtCursor(delta, e.clientX, e.clientY);
         }
 
-        // 6.4 Увеличить
+        // 3. Кнопки управления
         function zoomIn() {
             const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            zoomToCursor(currentZoom * (1 + CONFIG.zoom.step), 
-                canvasRect.width / 2, canvasRect.height / 2);
+            zoomAtCursor(CONFIG.zoom.step, canvasRect.width / 2, canvasRect.height / 2);
         }
         
-        // 6.5 Уменьшить
         function zoomOut() {
             const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            zoomToCursor(currentZoom * (1 - CONFIG.zoom.step), 
-                canvasRect.width / 2, canvasRect.height / 2);
+            zoomAtCursor(-CONFIG.zoom.step, canvasRect.width / 2, canvasRect.height / 2);
         }
         
-        // 6.6 Сбросить вид
         function resetView() {
             viewer.get('canvas').zoom('fit-viewport', { 
-                padding: 40 
+                padding: CONFIG.padding 
             });
             currentZoom = viewer.get('canvas').zoom();
             updateZoomIndicator();
         }
         
-        // 6.7 Переключение полноэкранного режима
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                document.getElementById('fullscreen-icon').textContent = 'fullscreen_exit';
             } else {
                 document.exitFullscreen();
-                document.getElementById('fullscreen-icon').textContent = 'fullscreen';
             }
         }
 
-        // ==================== 7. ПЕРЕТАСКИВАНИЕ ====================
-        
-        function startDrag(clientX, clientY) {
-            isDragging = true;
-            lastMouseX = clientX;
-            lastMouseY = clientY;
-            document.getElementById('canvas').classList.add('grabbing');
-        }
-        
-        function doDrag(clientX, clientY) {
-            if (!isDragging) return;
+        // ===== ПЕРЕТАСКИВАНИЕ (простое и рабочее) =====
+        function setupDragging() {
+            const canvas = document.getElementById('canvas');
+            let isDragging = false;
+            let lastX = 0;
+            let lastY = 0;
             
-            const dx = clientX - lastMouseX;
-            const dy = clientY - lastMouseY;
-            
-            viewer.get('canvas').scroll({ 
-                dx: -dx / currentZoom, 
-                dy: -dy / currentZoom 
-            });
-            
-            lastMouseX = clientX;
-            lastMouseY = clientY;
-        }
-        
-        function endDrag() {
-            isDragging = false;
-            document.getElementById('canvas').classList.remove('grabbing');
-        }
-
-        // ==================== 8. ХОТКЕИ И МОДАЛЬНОЕ ОКНО ====================
-        
-        // 8.1 Переключение модального окна
-        function toggleHotkeysModal() {
-            const modal = document.getElementById('hotkeys-modal');
-            modal.classList.toggle('active');
-            document.getElementById('hotkeys-btn').classList.add('has-hotkeys');
-        }
-
-        // 8.2 Закрытие при клике на оверлей
-        function closeModalOnOverlay(event) {
-            if (event.target === document.getElementById('hotkeys-modal')) {
-                toggleHotkeysModal();
-            }
-        }
-
-        // 8.3 Настройка горячих клавиш
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', (e) => {
-                // Показать/скрыть хоткеи
-                if (e.key === '?') {
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.button === 0) { // Левая кнопка
+                    isDragging = true;
+                    lastX = e.clientX;
+                    lastY = e.clientY;
+                    canvas.classList.add('grabbing');
                     e.preventDefault();
-                    toggleHotkeysModal();
-                }
-                
-                // Отметить активные клавиши
-                if (['Control', 'Shift', 'Alt'].includes(e.key)) {
-                    activeHotkeys.add(e.key);
-                    updateHotkeysIndicator();
-                }
-                
-                // Комбинации с Ctrl
-                if (e.ctrlKey || e.metaKey) {
-                    if (e.key === '+' || e.key === '=') {
-                        e.preventDefault();
-                        zoomIn();
-                    } else if (e.key === '-') {
-                        e.preventDefault();
-                        zoomOut();
-                    }
-                }
-                
-                // Одиночные клавиши
-                if (e.key === '0') {
-                    e.preventDefault();
-                    resetView();
-                }
-                
-                if (e.key === 'F11') {
-                    e.preventDefault();
-                    toggleFullscreen();
                 }
             });
             
-            document.addEventListener('keyup', (e) => {
-                if (['Control', 'Shift', 'Alt'].includes(e.key)) {
-                    activeHotkeys.delete(e.key);
-                    updateHotkeysIndicator();
-                }
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                
+                // Прокручиваем схему
+                viewer.get('canvas').scroll({ 
+                    dx: -dx / currentZoom, 
+                    dy: -dy / currentZoom 
+                });
+                
+                lastX = e.clientX;
+                lastY = e.clientY;
+            });
+            
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                canvas.classList.remove('grabbing');
             });
         }
 
-        // 8.4 Обновить индикатор активных хоткеев
-        function updateHotkeysIndicator() {
-            const btn = document.getElementById('hotkeys-btn');
-            if (activeHotkeys.size > 0) {
-                btn.classList.add('has-hotkeys');
-            } else {
-                btn.classList.remove('has-hotkeys');
-            }
-        }
-
-        // ==================== 9. ЗАГРУЗКА СХЕМЫ ====================
-        
+        // ===== ЗАГРУЗКА СХЕМЫ =====
         async function loadDiagram() {
             const urlParams = new URLSearchParams(window.location.search);
             const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
@@ -629,57 +281,71 @@
                 const xml = await response.text();
                 await viewer.importXML(xml);
                 
+                // Начальная настройка
                 setTimeout(resetView, 100);
                 
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
+                document.getElementById('canvas').innerHTML = 
+                    `<div style="padding: 40px; text-align: center; color: #666;">
+                        <h3>Не удалось загрузить схему</h3>
+                        <p>Файл "${diagramFileName}" не найден</p>
+                    </div>`;
             }
         }
 
-        // ==================== 10. ОБРАБОТЧИКИ СОБЫТИЙ ====================
-        
-        function setupEventListeners() {
-            const canvas = document.getElementById('canvas');
-            
-            // Мышь
-            canvas.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    startDrag(e.clientX, e.clientY);
-                }
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                doDrag(e.clientX, e.clientY);
-            });
-            
-            document.addEventListener('mouseup', endDrag);
-            
-            // Колесико - ТОЛЬКО ЗУМ
-            canvas.addEventListener('wheel', handleWheelZoom, { passive: false });
-            
-            // Полноэкранный режим
-            document.addEventListener('fullscreenchange', () => {
-                const icon = document.getElementById('fullscreen-icon');
-                icon.textContent = document.fullscreenElement ? 
-                    'fullscreen_exit' : 'fullscreen';
-            });
-        }
-
-        // ==================== 11. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        
+        // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
         function updateZoomIndicator() {
             const zoomPercent = Math.round(currentZoom * 100);
             document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
         }
 
-        // ==================== 12. ЗАПУСК ====================
-        
-        async function startApplication() {
+        function setupEventListeners() {
+            const canvas = document.getElementById('canvas');
+            
+            // Колесико
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
+            
+            // Перетаскивание
+            setupDragging();
+            
+            // Полноэкранный режим
+            document.addEventListener('fullscreenchange', () => {
+                // Ничего не делаем, просто адаптируемся к изменению размера
+                setTimeout(resetView, 50);
+            });
+            
+            // Горячие клавиши
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === '+' || e.key === '=') {
+                        e.preventDefault();
+                        zoomIn();
+                    } else if (e.key === '-') {
+                        e.preventDefault();
+                        zoomOut();
+                    }
+                }
+                
+                if (e.key === '0') {
+                    e.preventDefault();
+                    resetView();
+                }
+                
+                if (e.key === 'F11') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+            });
+        }
+
+        // ===== ЗАПУСК =====
+        async function start() {
             initViewer();
             await loadDiagram();
         }
 
-        document.addEventListener('DOMContentLoaded', startApplication);
+        document.addEventListener('DOMContentLoaded', start);
     </script>
 </body>
 </html>
