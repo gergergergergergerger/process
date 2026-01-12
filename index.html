@@ -110,7 +110,7 @@
         <span id="status">Загрузка...</span>
     </div>
 
-    <script>
+        <script>
         // 1. Инициализация просмотрщика
         const viewer = new BpmnJS({
             container: document.getElementById('canvas')
@@ -150,7 +150,7 @@
             }
         }
 
-                // 4. Функции зума относительно курсора
+        // 4. Функции зума относительно курсора
         function zoomWithCursor(zoomDelta, clientX, clientY) {
             const canvas = viewer.get('canvas');
             const currentZoom = canvas.zoom();
@@ -194,6 +194,15 @@
         function resetView() {
             viewer.get('canvas').zoom('fit-viewport', { padding: 20 });
         }
+        
+        function enterFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        // 7. Загружаем схему при старте
+        window.addEventListener('DOMContentLoaded', loadDiagram);
     </script>
 </body>
 </html>
