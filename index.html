@@ -76,6 +76,25 @@
 
         // 5. Загружаем схему при старте
         window.addEventListener('DOMContentLoaded', loadDiagram);
+        
+        // 6. Масштабирование колесиком мыши
+        document.getElementById('canvas').addEventListener('wheel', function(event) {
+            // Отменяем стандартное действие браузера (скролл страницы)
+            event.preventDefault();
+            
+            // Определяем направление прокрутки
+            // deltaY > 0 - прокрутка вниз (уменьшение)
+            // deltaY < 0 - прокрутка вверх (увеличение)
+            const zoomStep = 0.1; // Шаг масштабирования (можно настроить)
+            const delta = -event.deltaY; // Инвертируем для привычного поведения
+            
+            // Применяем масштабирование
+            if (delta > 0) {
+                zoomIn();
+            } else {
+                zoomOut();
+            }
+        });
     </script>
 </body>
 </html>
