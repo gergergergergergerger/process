@@ -4,436 +4,681 @@
     <title>BPMN Схема</title>
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@14/dist/assets/bpmn-js.css">
     <script src="https://unpkg.com/bpmn-js@14/dist/bpmn-navigated-viewer.development.js"></script>
+    <!-- Иконки Material Symbols -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Шрифт Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        html, body {
+        :root {
+            --primary-color: #3a86ff;
+            --primary-hover: #2a76ef;
+            --surface-color: #ffffff;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --border-color: #e0e0e0;
+            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: #f8fafc;
         }
+
+        /* 1.1 Контейнер схемы */
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
         #canvas {
             width: 100%;
             height: 100%;
-            background: #f9f9f9;
             cursor: grab;
-            touch-action: none;
+            background: var(--surface-color);
         }
-        #canvas:active {
+
+        #canvas.grabbing {
             cursor: grabbing;
         }
-        
-        /* 1.1 Стили панели управления */
+
+        /* 1.2 Панель управления - единый стиль */
         #controls {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(255, 255, 255, 0.94);
-            padding: 8px 10px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface-color);
+            padding: 12px 16px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 6px;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 0, 0, 0.09);
-            max-width: calc(100vw - 50px);
-            box-sizing: border-box;
-            transition: opacity 0.3s ease;
+            gap: 8px;
+            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: var(--transition);
         }
-        #controls.hidden {
-            opacity: 0.3;
-        }
-        #controls button {
-            margin: 0;
-            padding: 9px 12px;
+
+        /* 1.3 Кнопки с едиными иконками Material */
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            border: 1.5px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0; /* Скрываем текст */
             cursor: pointer;
-            border: 1px solid #d4d4d4;
-            border-radius: 7px;
-            background: #ffffff;
-            font-size: 18px;
-            line-height: 1;
-            min-width: 40px;
-            flex-shrink: 0;
-            transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: var(--transition);
+            position: relative;
         }
-        #controls button:hover {
-            background: #f0f0f0;
-            border-color: #a0a0a0;
-            transform: translateY(-1px);
+
+        .control-btn .material-icon {
+            font-family: 'Material Symbols Rounded';
+            font-weight: 400;
+            font-size: 22px;
+            color: var(--text-primary);
+            transition: var(--transition);
         }
-        #status {
-            margin-left: 10px;
-            color: #444;
-            font-size: 13px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 180px;
-            font-weight: 500;
+
+        .control-btn:hover {
+            border-color: var(--primary-color);
+            background: rgba(58, 134, 255, 0.08);
+            transform: translateY(-2px);
         }
-        
-        /* 1.2 Стили всплывающего окна */
-        .element-popup {
+
+        .control-btn:hover .material-icon {
+            color: var(--primary-color);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn::after {
+            content: attr(data-tooltip);
             position: absolute;
-            top: 50%;
+            bottom: -38px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+            transform: translateX(-50%) translateY(5px);
+            background: rgba(26, 26, 26, 0.95);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
             z-index: 1000;
-            max-width: 450px;
-            min-width: 320px;
-            border: 1px solid #ddd;
-            animation: fadeIn 0.2s ease;
+            font-family: 'Inter', sans-serif;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -48%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
+
+        .control-btn:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
-        .element-popup h3 {
-            margin-top: 0;
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 8px;
+
+        /* 1.4 Индикатор масштаба - единый стиль текста */
+        #zoom-indicator {
+            margin-left: 16px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 100px;
+            justify-content: center;
+            border: 1.5px solid var(--border-color);
+            font-family: 'Inter', sans-serif;
         }
-        .element-popup p {
-            margin: 10px 0;
+
+        #zoom-level {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* 1.5 Индикатор загрузки */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--surface-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            gap: 20px;
+        }
+
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 2.5px solid rgba(58, 134, 255, 0.1);
+            border-top: 2.5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .loading-text {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 1.6 Статус - единый стиль текста */
+        #status {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(26, 26, 26, 0.95);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            font-family: 'Inter', sans-serif;
+            max-width: 300px;
             line-height: 1.5;
         }
-        .element-popup button.close {
-            margin-top: 15px;
-            padding: 8px 18px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
+
+        #status.show {
+            opacity: 1;
+            transform: translateY(0);
         }
-        
-        /* 1.3 Адаптивность */
+
+        /* 1.7 Адаптивность */
         @media (max-width: 768px) {
             #controls {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                padding: 7px 8px;
-                border-radius: 8px;
-                gap: 5px;
-                max-width: none;
-                width: calc(100vw - 20px);
+                top: 16px;
+                padding: 10px 14px;
+                gap: 6px;
             }
-            #controls button {
-                padding: 8px 10px;
-                font-size: 17px;
-                min-width: 36px;
+            
+            .control-btn {
+                width: 40px;
+                height: 40px;
             }
-            #status {
+            
+            .control-btn .material-icon {
+                font-size: 20px;
+            }
+            
+            #zoom-indicator {
                 font-size: 12px;
-                max-width: 140px;
-            }
-            .element-popup {
-                min-width: 280px;
-                padding: 20px;
+                min-width: 90px;
+                padding: 6px 12px;
+                margin-left: 12px;
             }
         }
+
         @media (max-width: 480px) {
             #controls {
-                padding: 6px 7px;
+                top: 12px;
+                padding: 8px 12px;
                 gap: 4px;
             }
-            #controls button {
-                padding: 7px 9px;
-                font-size: 16px;
-                min-width: 34px;
+            
+            .control-btn {
+                width: 36px;
+                height: 36px;
             }
-            #status {
-                font-size: 11px;
-                max-width: 100px;
+            
+            .control-btn .material-icon {
+                font-size: 18px;
             }
-            #controls.auto-hide {
-                opacity: 0.3;
+            
+            .control-btn::after {
+                display: none;
             }
-            #controls.auto-hide:hover,
-            #controls.auto-hide:active {
-                opacity: 1;
+            
+            #zoom-indicator {
+                display: none;
             }
+        }
+
+        /* 1.8 Анимации */
+        .fade-in {
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, -10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
     </style>
 </head>
 <body>
-    <div id="canvas"></div>
-    
-    <!-- 1.4 Панель управления -->
-    <div id="controls">
-        <button onclick="F6_1_zoomIn()" title="Увеличить">➕</button>
-        <button onclick="F6_2_zoomOut()" title="Уменьшить">➖</button>
-        <button onclick="F6_3_resetView()" title="Сбросить вид">🗘</button>
-        <button onclick="F6_4_enterFullscreen()" title="На весь экран">⛶</button>
-        <span id="status">Загрузка...</span>
+    <!-- 2.1 Контейнер схемы -->
+    <div id="canvas-container">
+        <div id="canvas"></div>
+        
+        <!-- 2.2 Панель управления с едиными иконками -->
+        <div id="controls" class="fade-in">
+            <button class="control-btn" onclick="F6_1_zoomIn()" data-tooltip="Увеличить (Ctrl +)">
+                <span class="material-icon">zoom_in</span>
+            </button>
+            <button class="control-btn" onclick="F6_2_zoomOut()" data-tooltip="Уменьшить (Ctrl -)">
+                <span class="material-icon">zoom_out</span>
+            </button>
+            <button class="control-btn" onclick="F6_3_resetView()" data-tooltip="Сбросить вид">
+                <span class="material-icon">restart_alt</span>
+            </button>
+            <button class="control-btn" onclick="F6_4_toggleFullscreen()" data-tooltip="Полный экран">
+                <span class="material-icon" id="fullscreen-icon">fullscreen</span>
+            </button>
+            
+            <div id="zoom-indicator">
+                <span>Масштаб:</span>
+                <span id="zoom-level">100%</span>
+            </div>
+        </div>
+        
+        <!-- 2.3 Индикатор загрузки -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loader"></div>
+            <div class="loading-text">Загрузка схемы...</div>
+        </div>
+        
+        <!-- 2.4 Статус -->
+        <div id="status"></div>
     </div>
 
     <script>
-        // ==================== 2. КОНФИГУРАЦИЯ ====================
+        // ==================== 3. КОНФИГУРАЦИЯ ====================
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             zoom: {
-                min: 0.15,
+                min: 0.1,
                 max: 5,
-                stepMouse: 0.0012,
-                stepButtons: 0.25
-            },
-            padding: 25
+                stepMouse: 0.0008,
+                smoothness: 0.15
+            }
         };
 
-        // ==================== 3. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
+        // ==================== 4. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
         let viewer = null;
-        let elementDescriptions = {};
-        let touchZoomData = { initialDistance: 0, initialZoom: 1 };
-        let hideControlsTimer = null;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let currentZoom = 1;
+        let currentViewbox = null;
+        let resizeTimeout = null;
+        let isFullscreen = false;
 
-        // ==================== 4. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ====================
+        // ==================== 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ====================
         
-        // 4.1 Инициализация просмотрщика
+        // 5.1 Инициализация просмотрщика
         function F4_1_initViewer() {
-            viewer = new BpmnJS({ container: '#canvas' });
-            F8_1_loadDescriptions();
-            F10_1_setupEventListeners();
+            viewer = new BpmnJS({ 
+                container: '#canvas'
+            });
             
-            if (window.innerWidth <= 480) {
-                document.getElementById('controls').classList.add('auto-hide');
-            }
+            F10_1_setupEventListeners();
+            F11_1_setupKeyboardShortcuts();
+            F12_1_showStatus('Готов к работе', 'success');
         }
 
-        // ==================== 5. ФУНКЦИИ ЗАГРУЗКИ СХЕМЫ ====================
-        
-        // 5.1 Основная функция загрузки схемы
-        async function F5_1_loadDiagram() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
-            const statusElement = document.getElementById('status');
-            statusElement.textContent = `Загрузка: ${diagramFileName}...`;
-
-            try {
-                const response = await fetch(diagramFileName);
-                if (!response.ok) throw new Error(`Файл не найден (ошибка ${response.status})`);
-                const xml = await response.text();
-                await viewer.importXML(xml);
-                statusElement.textContent = diagramFileName;
-                viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
-                F9_1_setupElementClick();
-            } catch (error) {
-                console.error('Ошибка загрузки:', error);
-                statusElement.textContent = 'Ошибка';
-                document.getElementById('canvas').innerHTML = `
-                    <div style="padding:30px; text-align:center; color:#d00;">
-                        <h3>Не удалось загрузить схему</h3>
-                        <p>${error.message}</p>
-                        <p>Проверьте имя файла в ссылке</p>
-                    </div>
-                `;
-            }
+        // 5.2 Показать статус
+        function F12_1_showStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = type;
+            status.classList.add('show');
+            
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 2500);
         }
 
         // ==================== 6. ФУНКЦИИ УПРАВЛЕНИЯ МАСШТАБОМ ====================
         
-        // 6.1 Зум относительно центра экрана
-        function F6_1_zoomWithCursor(zoomDelta) {
+        // 6.1 Плавный зум относительно курсора
+        function F6_1_smoothZoom(targetZoom, clientX, clientY) {
             const canvas = viewer.get('canvas');
-            const currentZoom = canvas.zoom();
             const viewport = canvas.viewbox();
             
-            // Центр видимой области (экрана)
-            const centerX = viewport.x + viewport.width / 2;
-            const centerY = viewport.y + viewport.height / 2;
+            // Точка зума относительно позиции курсора
+            const pointX = (clientX - viewport.x) / currentZoom;
+            const pointY = (clientY - viewport.y) / currentZoom;
             
-            const newZoom = Math.max(CONFIG.zoom.min, 
-                Math.min(CONFIG.zoom.max, currentZoom * (1 + zoomDelta)));
+            // Ограничиваем целевой масштаб
+            const clampedZoom = Math.max(CONFIG.zoom.min, 
+                Math.min(CONFIG.zoom.max, targetZoom));
             
-            canvas.zoom(newZoom, { 
-                x: centerX, 
-                y: centerY 
-            });
-            F11_1_showControlsTemporarily();
+            // Плавный переход к новому масштабу
+            let startZoom = currentZoom;
+            let progress = 0;
+            
+            const animateZoom = () => {
+                progress += CONFIG.zoom.smoothness;
+                const easeProgress = 1 - Math.pow(1 - progress, 3); // Кубическое easing
+                
+                if (progress < 1) {
+                    currentZoom = startZoom + (clampedZoom - startZoom) * easeProgress;
+                    canvas.zoom(currentZoom, { x: pointX, y: pointY });
+                    F11_2_updateZoomIndicator();
+                    requestAnimationFrame(animateZoom);
+                } else {
+                    currentZoom = clampedZoom;
+                    canvas.zoom(currentZoom, { x: pointX, y: pointY });
+                    F11_2_updateZoomIndicator();
+                }
+            };
+            
+            animateZoom();
         }
 
         // 6.2 Увеличить (кнопка +)
         function F6_1_zoomIn() {
-            const canvas = viewer.get('canvas');
-            const viewbox = canvas.viewbox();
-            const newZoom = Math.min(CONFIG.zoom.max, 
-                canvas.zoom() * (1 + CONFIG.zoom.stepButtons));
-            canvas.zoom(newZoom, {
-                x: viewbox.x + viewbox.width / 2,
-                y: viewbox.y + viewbox.height / 2
-            });
-            F11_1_showControlsTemporarily();
+            const targetZoom = currentZoom * 1.25;
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+            F6_1_smoothZoom(targetZoom, canvasRect.width / 2, canvasRect.height / 2);
         }
         
         // 6.3 Уменьшить (кнопка -)
         function F6_2_zoomOut() {
-            const canvas = viewer.get('canvas');
-            const viewbox = canvas.viewbox();
-            const newZoom = Math.max(CONFIG.zoom.min, 
-                canvas.zoom() * (1 - CONFIG.zoom.stepButtons));
-            canvas.zoom(newZoom, {
-                x: viewbox.x + viewbox.width / 2,
-                y: viewbox.y + viewbox.height / 2
-            });
-            F11_1_showControlsTemporarily();
+            const targetZoom = currentZoom * 0.8;
+            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
+            F6_1_smoothZoom(targetZoom, canvasRect.width / 2, canvasRect.height / 2);
         }
         
-        // 6.4 Сбросить вид
+        // 6.4 Сбросить вид к исходному
         function F6_3_resetView() {
-            viewer.get('canvas').zoom('fit-viewport', { padding: CONFIG.padding });
-            F11_1_showControlsTemporarily();
+            viewer.get('canvas').zoom('fit-viewport', { 
+                padding: { 
+                    top: 60, 
+                    bottom: 60, 
+                    left: 60, 
+                    right: 60 
+                } 
+            });
+            currentZoom = viewer.get('canvas').zoom();
+            F11_2_updateZoomIndicator();
+            F12_1_showStatus('Вид сброшен', 'info');
         }
         
-        // 6.5 Полноэкранный режим
-        function F6_4_enterFullscreen() {
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen();
+        // 6.5 Переключение полноэкранного режима
+        function F6_4_toggleFullscreen() {
+            const elem = document.documentElement;
+            
+            if (!document.fullscreenElement) {
+                // Сохраняем текущее состояние перед переходом в полноэкранный режим
+                saveViewState();
+                elem.requestFullscreen().then(() => {
+                    isFullscreen = true;
+                    document.getElementById('fullscreen-icon').textContent = 'fullscreen_exit';
+                    // В полноэкранном режиме сохраняем масштаб и позицию
+                    setTimeout(() => {
+                        restoreViewState();
+                    }, 100);
+                });
+            } else {
+                // Сохраняем состояние перед выходом
+                saveViewState();
+                document.exitFullscreen().then(() => {
+                    isFullscreen = false;
+                    document.getElementById('fullscreen-icon').textContent = 'fullscreen';
+                    // После выхода восстанавливаем сохраненное состояние
+                    setTimeout(() => {
+                        restoreViewState();
+                    }, 100);
+                });
             }
         }
 
-        // ==================== 7. ФУНКЦИИ МУЛЬТИТАЧА (ТЕЛЕФОНЫ) ====================
+        // ==================== 7. СОХРАНЕНИЕ И ВОССТАНОВЛЕНИЕ СОСТОЯНИЯ ====================
         
-        // 7.1 Обработка мультитач-зума
-        function F7_1_handleTouchZoom(e) {
-            if (e.touches.length !== 2) return;
+        // 7.1 Сохранить текущее состояние просмотра
+        function saveViewState() {
+            const canvas = viewer.get('canvas');
+            currentViewbox = canvas.viewbox();
+            // Сохраняем текущий zoom отдельно
+            currentZoom = canvas.zoom();
+        }
+        
+        // 7.2 Восстановить сохраненное состояние
+        function restoreViewState() {
+            if (!currentViewbox) return;
+            
+            const canvas = viewer.get('canvas');
+            try {
+                // Восстанавливаем позицию и масштаб
+                canvas.viewbox(currentViewbox);
+                // Убеждаемся, что zoom соответствует сохраненному
+                canvas.zoom(currentZoom);
+                F11_2_updateZoomIndicator();
+            } catch (e) {
+                console.warn('Не удалось восстановить состояние:', e);
+            }
+        }
+
+        // ==================== 8. ФУНКЦИИ ЗАГРУЗКИ СХЕМЫ ====================
+        
+        // 8.1 Загрузка схемы
+        async function F5_1_loadDiagram() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.classList.remove('hidden');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
+            
+            try {
+                const response = await fetch(diagramFileName);
+                if (!response.ok) throw new Error(`Файл не найден`);
+                
+                const xml = await response.text();
+                await viewer.importXML(xml);
+                
+                // Исходная настройка вида
+                setTimeout(() => {
+                    F6_3_resetView();
+                    loadingOverlay.classList.add('hidden');
+                    F12_1_showStatus(`Схема "${diagramFileName}" загружена`, 'success');
+                }, 600);
+                
+            } catch (error) {
+                loadingOverlay.classList.add('hidden');
+                F12_1_showStatus(`Ошибка загрузки: ${error.message}`, 'error');
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+
+        // ==================== 9. ОБРАБОТКА КОЛЕСИКА И ПЕРЕТАСКИВАНИЯ ====================
+        
+        // 9.1 Обработка колесика мыши
+        function F9_1_handleWheel(e) {
             e.preventDefault();
             
-            const t1 = e.touches[0], t2 = e.touches[1];
-            const currentDist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+            const delta = -Math.sign(e.deltaY) * CONFIG.zoom.stepMouse;
+            const targetZoom = currentZoom * (1 + delta * 3);
             
-            if (touchZoomData.initialDistance === 0) {
-                touchZoomData.initialDistance = currentDist;
-                touchZoomData.initialZoom = viewer.get('canvas').zoom();
-            } else {
-                const scale = currentDist / touchZoomData.initialDistance;
-                const newZoom = Math.max(CONFIG.zoom.min, 
-                    Math.min(CONFIG.zoom.max, touchZoomData.initialZoom * scale));
-                
-                // Зум относительно центра экрана
-                const canvas = viewer.get('canvas');
-                const viewport = canvas.viewbox();
-                const screenCenterX = viewport.x + viewport.width / 2;
-                const screenCenterY = viewport.y + viewport.height / 2;
-                canvas.zoom(newZoom, { x: screenCenterX, y: screenCenterY });
-            }
-            F11_1_showControlsTemporarily();
+            F6_1_smoothZoom(targetZoom, e.clientX, e.clientY);
         }
 
-        // ==================== 8. ФУНКЦИИ КОНТЕКСТНЫХ ОПИСАНИЙ ====================
+        // 9.2 Начать перетаскивание
+        function F7_1_startDrag(clientX, clientY) {
+            isDragging = true;
+            lastMouseX = clientX;
+            lastMouseY = clientY;
+            document.getElementById('canvas').classList.add('grabbing');
+        }
         
-        // 8.1 Загрузка описаний из JSON
-        async function F8_1_loadDescriptions() {
-            try {
-                const response = await fetch('descriptions.json');
-                elementDescriptions = await response.json();
-            } catch {
-                console.info('Файл описаний не загружен');
-            }
-        }
-
-        // 8.2 Показать информацию об элементе
-        function F8_2_showElementInfo(elementId) {
-            const info = elementDescriptions.elements?.[elementId];
-            if (!info) {
-                alert(`Элемент: ${elementId}\nОписание отсутствует.`);
-                return;
-            }
+        // 9.3 Перетаскивание
+        function F7_2_doDrag(clientX, clientY) {
+            if (!isDragging) return;
             
-            const popup = document.createElement('div');
-            popup.className = 'element-popup';
-            popup.innerHTML = `
-                <h3>${info.name || 'Элемент'}</h3>
-                ${info.description ? `<p><strong>Описание:</strong> ${info.description}</p>` : ''}
-                ${info.responsible ? `<p><strong>Ответственный:</strong> ${info.responsible}</p>` : ''}
-                ${info.deadline ? `<p><strong>Срок:</strong> ${info.deadline}</p>` : ''}
-                ${info.type ? `<p><strong>Тип:</strong> ${info.type}</p>` : ''}
-                <p><small style="color:#777;">ID: ${elementId}</small></p>
-                <button class="close" onclick="this.closest('.element-popup').remove()">Закрыть</button>
-            `;
+            const dx = clientX - lastMouseX;
+            const dy = clientY - lastMouseY;
             
-            document.body.appendChild(popup);
-            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+            const canvas = viewer.get('canvas');
+            canvas.scroll({ dx: -dx, dy: -dy });
+            
+            lastMouseX = clientX;
+            lastMouseY = clientY;
+            
+            // Сохраняем состояние при перетаскивании
+            saveViewState();
+        }
+        
+        // 9.4 Закончить перетаскивание
+        function F7_3_endDrag() {
+            isDragging = false;
+            document.getElementById('canvas').classList.remove('grabbing');
         }
 
-        // ==================== 9. ФУНКЦИИ ОБРАБОТКИ КЛИКОВ ====================
+        // ==================== 10. ОБРАБОТЧИКИ СОБЫТИЙ ====================
         
-        // 9.1 Настройка обработки кликов по элементам
-        function F9_1_setupElementClick() {
-            viewer.on('element.click', e => {
-                const type = e.element.type;
-                if (type.includes('Task') || type.includes('Gateway')) {
-                    F8_2_showElementInfo(e.element.id);
-                }
-            });
-        }
-
-        // ==================== 10. ФУНКЦИИ ОБРАБОТЧИКОВ СОБЫТИЙ ====================
-        
-        // 10.1 Настройка всех обработчиков событий
+        // 10.1 Настройка обработчиков
         function F10_1_setupEventListeners() {
             const canvas = document.getElementById('canvas');
             
-            // 10.1.1 Колесико мыши
-            canvas.addEventListener('wheel', e => {
-                e.preventDefault();
-                F6_1_zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse);
-            }, { passive: false });
-            
-            // 10.1.2 Касания (телефоны)
-            canvas.addEventListener('touchstart', e => {
-                if (e.touches.length === 2) F7_1_handleTouchZoom(e);
-                F11_1_showControlsTemporarily();
-            });
-            canvas.addEventListener('touchmove', e => {
-                if (e.touches.length === 2) F7_1_handleTouchZoom(e);
-            });
-            canvas.addEventListener('touchend', () => {
-                touchZoomData.initialDistance = 0;
+            // Мышь
+            canvas.addEventListener('mousedown', (e) => {
+                if (e.button === 0) {
+                    F7_1_startDrag(e.clientX, e.clientY);
+                }
             });
             
-            // 10.1.3 Показ панели при движении мыши
-            document.addEventListener('mousemove', () => {
-                if (window.innerWidth <= 480) F11_1_showControlsTemporarily();
+            document.addEventListener('mousemove', (e) => {
+                F7_2_doDrag(e.clientX, e.clientY);
+            });
+            
+            document.addEventListener('mouseup', F7_3_endDrag);
+            
+            // Колесико
+            canvas.addEventListener('wheel', F9_1_handleWheel, { passive: false });
+            
+            // Изменение размера окна - БЕЗ сброса, только восстановление
+            window.addEventListener('resize', () => {
+                if (resizeTimeout) clearTimeout(resizeTimeout);
+                
+                // Ждем окончания изменения размера
+                resizeTimeout = setTimeout(() => {
+                    if (currentViewbox) {
+                        restoreViewState();
+                    }
+                }, 150);
+            });
+            
+            // Полноэкранный режим - обновление иконки
+            document.addEventListener('fullscreenchange', () => {
+                isFullscreen = !!document.fullscreenElement;
+                document.getElementById('fullscreen-icon').textContent = 
+                    isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+                
+                // При изменении полноэкранного режима сохраняем состояние
+                setTimeout(() => {
+                    if (currentViewbox) {
+                        restoreViewState();
+                    }
+                }, 100);
             });
         }
 
-        // ==================== 11. ФУНКЦИИ УПРАВЛЕНИЯ ПАНЕЛЬЮ ====================
+        // ==================== 11. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
         
-        // 11.1 Временное отображение панели
-        function F11_1_showControlsTemporarily() {
-            const controls = document.getElementById('controls');
-            if (window.innerWidth <= 480) {
-                controls.classList.remove('auto-hide');
-                clearTimeout(hideControlsTimer);
-                hideControlsTimer = setTimeout(() => {
-                    controls.classList.add('auto-hide');
-                }, 3000);
-            }
+        // 11.1 Горячие клавиши
+        function F11_1_setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl + + для увеличения
+                if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
+                    e.preventDefault();
+                    F6_1_zoomIn();
+                }
+                
+                // Ctrl + - для уменьшения
+                if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+                    e.preventDefault();
+                    F6_2_zoomOut();
+                }
+                
+                // 0 для сброса
+                if (e.key === '0') {
+                    e.preventDefault();
+                    F6_3_resetView();
+                }
+                
+                // F11 для полноэкранного режима
+                if (e.key === 'F11') {
+                    e.preventDefault();
+                    F6_4_toggleFullscreen();
+                }
+            });
+        }
+        
+        // 11.2 Обновление индикатора масштаба
+        function F11_2_updateZoomIndicator() {
+            const zoomPercent = Math.round(currentZoom * 100);
+            document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
+            
+            // Анимация изменения
+            const indicator = document.getElementById('zoom-level');
+            indicator.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                indicator.style.transform = 'scale(1)';
+            }, 200);
         }
 
-        // ==================== 12. ЗАПУСК ПРИЛОЖЕНИЯ ====================
+        // ==================== 12. ЗАПУСК ====================
         
-        // 12.1 Главная функция запуска
+        // 12.1 Запуск приложения
         function F12_1_startApplication() {
             F4_1_initViewer();
             F5_1_loadDiagram();
         }
 
-        // 12.2 Запуск при загрузке DOM
-        window.addEventListener('DOMContentLoaded', F12_1_startApplication);
+        // 12.2 Запуск при загрузке
+        document.addEventListener('DOMContentLoaded', F12_1_startApplication);
     </script>
 </body>
 </html>
