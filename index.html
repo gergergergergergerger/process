@@ -18,22 +18,64 @@
 <body>
     <div id="canvas"></div>
     <div id="controls">
-        <button onclick="zoom(0.2)">+ Увеличить</button>
-        <button onclick="zoom(-0.2)">- Уменьшить</button>
-        <button onclick="reset()">Сбросить вид</button>
-        <button onclick="document.documentElement.requestFullscreen()">На весь экран</button>
+        <button onclick="zoomIn()">+ Увеличить</button>
+        <button onclick="zoomOut()">- Уменьшить</button>
+        <button onclick="resetView()">Сбросить вид</button>
+        <button onclick="enterFullscreen()">На весь экран</button>
+        <span style="margin-left:10px; color:#666;" id="status">Загрузка...</span>
     </div>
+
     <script>
-        let viewer = new BpmnJS({ container: '#canvas' });
-        const url = new URLSearchParams(window.location.search);
-        const file = url.get('diagram') || 'diagram.bpmn';
-        fetch(file)
-            .then(r => r.ok ? r.text() : Promise.reject('Файл не найден'))
-            .then(xml => viewer.importXML(xml))
-            .then(() => viewer.get('canvas').zoom('fit-viewport'))
-            .catch(e => document.getElementById('canvas').innerHTML = '<div style="padding:20px;color:red">Ошибка: ' + e + '</div>');
-        function zoom(s) { viewer.get('zoomScroll').stepZoom(s); }
-        function reset() { viewer.get('canvas').zoom('fit-viewport'); }
+        // 1. Инициализируем просмотрщик
+        const viewer = new BpmnJS({
+            container: document.getElementById('canvas')
+        });
+
+        // 2. Получаем имя файла из параметра ?diagram= в ссылке
+        const urlParams = new URLSearchParams(window.location.search);
+        const diagramFileName = urlParams.get('diagram') || '1zayavka.bpmn';
+
+        // 3. Функция загрузки схемы
+        async function loadDiagram() {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = `Загрузка: ${diagramFileName}...`;
+
+            try {
+                const response = await fetch(diagramFileName);
+                if (!response.ok) {
+                    throw new Error(`Файл не найден (ошибка ${response.status})`);
+                }
+                const xml = await response.text();
+                await viewer.importXML(xml);
+                statusElement.textContent = `Схема загружена: ${diagramFileName}`;
+                viewer.get('canvas').zoom('fit-viewport');
+            } catch (error) {
+                console.error('Ошибка загрузки схемы:', error);
+                statusElement.textContent = 'Ошибка загрузки';
+                document.getElementById('canvas').innerHTML = `
+                    <div style="padding:30px; text-align:center; color:#d00;">
+                        <h3>Не удалось загрузить схему</h3>
+                        <p>${error.message}</p>
+                        <p>Проверьте:<br>
+                        1. Файл <strong>${diagramFileName}</strong> в репозитории<br>
+                        2. Правильность имени файла в ссылке</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 4. Функции управления
+        function zoomIn() { viewer.get('zoomScroll').stepZoom(0.2); }
+        function zoomOut() { viewer.get('zoomScroll').stepZoom(-0.2); }
+        function resetView() { viewer.get('canvas').zoom('fit-viewport'); }
+        function enterFullscreen() {
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen();
+            }
+        }
+
+        // 5. Загружаем схему при старте
+        window.addEventListener('DOMContentLoaded', loadDiagram);
     </script>
 </body>
 </html>
