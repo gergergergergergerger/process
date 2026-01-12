@@ -4,25 +4,23 @@
     <title>BPMN Схема</title>
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@14/dist/assets/bpmn-js.css">
     <script src="https://unpkg.com/bpmn-js@14/dist/bpmn-navigated-viewer.development.js"></script>
-    <!-- Иконки Material Symbols -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <!-- Material Icons -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400,0,0" />
     <!-- Шрифт Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #3a86ff;
-            --primary-hover: #2a76ef;
+            --primary-color: #2563eb;
             --surface-color: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --border-color: #e0e0e0;
-            --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.12);
-            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --radius-md: 10px;
+            --radius-sm: 8px;
         }
 
         * {
@@ -35,18 +33,16 @@
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-weight: 500;
-            color: var(--text-primary);
-            background: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            background: #f9fafb;
         }
 
-        /* 1.1 Контейнер схемы */
+        /* 1.1 Контейнер схемы - БЕЗ ограничений */
         #canvas-container {
             width: 100%;
             height: 100%;
             position: relative;
-            overflow: hidden;
         }
 
         #canvas {
@@ -54,61 +50,66 @@
             height: 100%;
             cursor: grab;
             background: var(--surface-color);
+            /* Убираем все ограничения для свободного движения */
+            min-width: none;
+            min-height: none;
+            overflow: visible;
         }
 
         #canvas.grabbing {
             cursor: grabbing;
         }
 
-        /* 1.2 Панель управления - единый стиль */
+        /* 1.2 Панель управления - компактная и закрепленная */
         #controls {
-            position: absolute;
-            top: 24px;
+            position: fixed; /* Закрепляем */
+            top: 16px; /* Минимальный отступ сверху */
             left: 50%;
             transform: translateX(-50%);
             background: var(--surface-color);
-            padding: 12px 16px;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-lg);
+            padding: 10px 14px; /* Уменьшили padding */
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 8px;
-            backdrop-filter: blur(12px);
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: var(--transition);
+            gap: 6px; /* Уменьшили расстояние между кнопками */
+            border: 1px solid var(--border-color);
+            transition: all 0.15s ease;
+            /* Фиксированная ширина для стабильности */
+            min-width: 300px;
+            max-width: 400px;
         }
 
-        /* 1.3 Кнопки с едиными иконками Material */
+        /* 1.3 Кнопки - более компактные */
         .control-btn {
-            width: 44px;
-            height: 44px;
-            border: 1.5px solid var(--border-color);
-            border-radius: var(--radius-md);
+            width: 36px; /* Уменьшили размер */
+            height: 36px; /* Уменьшили размер */
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
             background: transparent;
             color: var(--text-primary);
-            font-size: 0; /* Скрываем текст */
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: var(--transition);
+            transition: all 0.15s ease;
             position: relative;
+            padding: 0;
         }
 
         .control-btn .material-icon {
             font-family: 'Material Symbols Rounded';
             font-weight: 400;
-            font-size: 22px;
+            font-size: 18px; /* Уменьшили размер иконок */
             color: var(--text-primary);
-            transition: var(--transition);
+            transition: inherit;
         }
 
         .control-btn:hover {
             border-color: var(--primary-color);
-            background: rgba(58, 134, 255, 0.08);
-            transform: translateY(-2px);
+            background: rgba(37, 99, 235, 0.05);
+            transform: translateY(-1px); /* Уменьшили эффект поднятия */
         }
 
         .control-btn:hover .material-icon {
@@ -119,180 +120,70 @@
             transform: translateY(0);
         }
 
-        .control-btn::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: -38px;
-            left: 50%;
-            transform: translateX(-50%) translateY(5px);
-            background: rgba(26, 26, 26, 0.95);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all 0.2s ease;
-            z-index: 1000;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .control-btn:hover::after {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* 1.4 Индикатор масштаба - единый стиль текста */
+        /* 1.4 Индикатор масштаба - компактный */
         #zoom-indicator {
-            margin-left: 16px;
-            padding: 8px 16px;
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            font-size: 13px;
+            margin-left: 12px; /* Уменьшили отступ */
+            padding: 6px 12px; /* Уменьшили padding */
+            background: transparent;
+            border-radius: 16px;
+            font-size: 12px;
             font-weight: 500;
-            color: var(--text-primary);
+            color: var(--text-secondary);
             display: flex;
             align-items: center;
-            gap: 8px;
-            min-width: 100px;
-            justify-content: center;
-            border: 1.5px solid var(--border-color);
-            font-family: 'Inter', sans-serif;
+            gap: 6px;
+            border: 1px solid var(--border-color);
         }
 
         #zoom-level {
             font-weight: 600;
             color: var(--primary-color);
-            font-family: 'Inter', sans-serif;
+            min-width: 40px;
+            text-align: center;
         }
 
-        /* 1.5 Индикатор загрузки */
-        .loading-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--surface-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            gap: 20px;
-        }
-
-        .loading-overlay.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loader {
-            width: 48px;
-            height: 48px;
-            border: 2.5px solid rgba(58, 134, 255, 0.1);
-            border-top: 2.5px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        .loading-text {
-            font-size: 15px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-family: 'Inter', sans-serif;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* 1.6 Статус - единый стиль текста */
-        #status {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            background: rgba(26, 26, 26, 0.95);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: all 0.3s ease;
-            z-index: 1000;
-            font-family: 'Inter', sans-serif;
-            max-width: 300px;
-            line-height: 1.5;
-        }
-
-        #status.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* 1.7 Адаптивность */
-        @media (max-width: 768px) {
+        /* 1.5 Адаптивность */
+        @media (max-width: 640px) {
             #controls {
-                top: 16px;
-                padding: 10px 14px;
-                gap: 6px;
+                top: 12px;
+                padding: 8px 12px;
+                min-width: 280px;
+                gap: 4px;
             }
             
             .control-btn {
-                width: 40px;
-                height: 40px;
+                width: 32px;
+                height: 32px;
             }
             
             .control-btn .material-icon {
-                font-size: 20px;
+                font-size: 16px;
             }
             
             #zoom-indicator {
-                font-size: 12px;
-                min-width: 90px;
-                padding: 6px 12px;
-                margin-left: 12px;
+                margin-left: 8px;
+                padding: 4px 8px;
+                font-size: 11px;
             }
         }
 
         @media (max-width: 480px) {
             #controls {
-                top: 12px;
-                padding: 8px 12px;
-                gap: 4px;
-            }
-            
-            .control-btn {
-                width: 36px;
-                height: 36px;
-            }
-            
-            .control-btn .material-icon {
-                font-size: 18px;
-            }
-            
-            .control-btn::after {
-                display: none;
-            }
-            
-            #zoom-indicator {
-                display: none;
+                min-width: 260px;
             }
         }
 
-        /* 1.8 Анимации */
+        /* 1.6 Утилиты */
+        .hidden {
+            display: none !important;
+        }
+
         .fade-in {
-            animation: fadeIn 0.4s ease;
+            animation: fadeIn 0.2s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translate(-50%, -10px); }
+            from { opacity: 0; transform: translate(-50%, -8px); }
             to { opacity: 1; transform: translate(-50%, 0); }
         }
     </style>
@@ -302,18 +193,18 @@
     <div id="canvas-container">
         <div id="canvas"></div>
         
-        <!-- 2.2 Панель управления с едиными иконками -->
+        <!-- 2.2 Панель управления -->
         <div id="controls" class="fade-in">
-            <button class="control-btn" onclick="F6_1_zoomIn()" data-tooltip="Увеличить (Ctrl +)">
+            <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">
                 <span class="material-icon">zoom_in</span>
             </button>
-            <button class="control-btn" onclick="F6_2_zoomOut()" data-tooltip="Уменьшить (Ctrl -)">
+            <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">
                 <span class="material-icon">zoom_out</span>
             </button>
-            <button class="control-btn" onclick="F6_3_resetView()" data-tooltip="Сбросить вид">
+            <button class="control-btn" onclick="resetView()" title="Сбросить вид">
                 <span class="material-icon">restart_alt</span>
             </button>
-            <button class="control-btn" onclick="F6_4_toggleFullscreen()" data-tooltip="Полный экран">
+            <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран">
                 <span class="material-icon" id="fullscreen-icon">fullscreen</span>
             </button>
             
@@ -322,15 +213,6 @@
                 <span id="zoom-level">100%</span>
             </div>
         </div>
-        
-        <!-- 2.3 Индикатор загрузки -->
-        <div id="loading-overlay" class="loading-overlay">
-            <div class="loader"></div>
-            <div class="loading-text">Загрузка схемы...</div>
-        </div>
-        
-        <!-- 2.4 Статус -->
-        <div id="status"></div>
     </div>
 
     <script>
@@ -338,11 +220,12 @@
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             zoom: {
-                min: 0.1,
-                max: 5,
-                stepMouse: 0.0008,
-                smoothness: 0.15
-            }
+                min: 0.05,   // Уменьшил минимальный зум для большей свободы
+                max: 20,     // Увеличил максимальный зум
+                step: 0.25,  // Шаг для кнопок
+                wheelStep: 0.001 // Чувствительность колесика
+            },
+            padding: 40      // Отступ при сбросе вида
         };
 
         // ==================== 4. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ====================
@@ -351,334 +234,272 @@
         let lastMouseX = 0;
         let lastMouseY = 0;
         let currentZoom = 1;
-        let currentViewbox = null;
+        let savedState = null;
         let resizeTimeout = null;
-        let isFullscreen = false;
 
-        // ==================== 5. ФУНКЦИИ ИНИЦИАЛИЗАЦИИ ====================
+        // ==================== 5. ИНИЦИАЛИЗАЦИЯ ====================
         
         // 5.1 Инициализация просмотрщика
-        function F4_1_initViewer() {
+        function initViewer() {
             viewer = new BpmnJS({ 
-                container: '#canvas'
+                container: '#canvas',
+                // Отключаем ограничения прокрутки для свободного движения
+                scroll: {
+                    scrollThreshold: 0
+                }
             });
             
-            F10_1_setupEventListeners();
-            F11_1_setupKeyboardShortcuts();
-            F12_1_showStatus('Готов к работе', 'success');
+            setupEventListeners();
+            setupKeyboardShortcuts();
         }
 
-        // 5.2 Показать статус
-        function F12_1_showStatus(message, type = 'info') {
-            const status = document.getElementById('status');
-            status.textContent = message;
-            status.className = type;
-            status.classList.add('show');
-            
-            setTimeout(() => {
-                status.classList.remove('show');
-            }, 2500);
-        }
-
-        // ==================== 6. ФУНКЦИИ УПРАВЛЕНИЯ МАСШТАБОМ ====================
+        // ==================== 6. МАСШТАБИРОВАНИЕ ОТНОСИТЕЛЬНО КУРСОРА ====================
         
-        // 6.1 Плавный зум относительно курсора
-        function F6_1_smoothZoom(targetZoom, clientX, clientY) {
+        // 6.1 Получить позицию курсора относительно схемы
+        function getCursorPosition(clientX, clientY) {
             const canvas = viewer.get('canvas');
-            const viewport = canvas.viewbox();
+            const viewbox = canvas.viewbox();
             
-            // Точка зума относительно позиции курсора
-            const pointX = (clientX - viewport.x) / currentZoom;
-            const pointY = (clientY - viewport.y) / currentZoom;
+            // Координаты курсора относительно viewport схемы
+            const x = (clientX - viewbox.x) / currentZoom;
+            const y = (clientY - viewbox.y) / currentZoom;
             
-            // Ограничиваем целевой масштаб
+            return { x, y };
+        }
+
+        // 6.2 Плавное масштабирование относительно курсора (как в Miro/Excalidraw)
+        function zoomToCursor(targetZoom, clientX, clientY) {
+            const canvas = viewer.get('canvas');
+            const { x, y } = getCursorPosition(clientX, clientY);
+            
+            // Ограничиваем масштаб
             const clampedZoom = Math.max(CONFIG.zoom.min, 
                 Math.min(CONFIG.zoom.max, targetZoom));
             
-            // Плавный переход к новому масштабу
-            let startZoom = currentZoom;
-            let progress = 0;
-            
-            const animateZoom = () => {
-                progress += CONFIG.zoom.smoothness;
-                const easeProgress = 1 - Math.pow(1 - progress, 3); // Кубическое easing
-                
-                if (progress < 1) {
-                    currentZoom = startZoom + (clampedZoom - startZoom) * easeProgress;
-                    canvas.zoom(currentZoom, { x: pointX, y: pointY });
-                    F11_2_updateZoomIndicator();
-                    requestAnimationFrame(animateZoom);
-                } else {
-                    currentZoom = clampedZoom;
-                    canvas.zoom(currentZoom, { x: pointX, y: pointY });
-                    F11_2_updateZoomIndicator();
-                }
-            };
-            
-            animateZoom();
+            // Масштабируем относительно точки курсора
+            canvas.zoom(clampedZoom, { x, y });
+            currentZoom = clampedZoom;
+            updateZoomIndicator();
         }
 
-        // 6.2 Увеличить (кнопка +)
-        function F6_1_zoomIn() {
-            const targetZoom = currentZoom * 1.25;
+        // 6.3 Увеличить (относительно центра)
+        function zoomIn() {
             const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            F6_1_smoothZoom(targetZoom, canvasRect.width / 2, canvasRect.height / 2);
+            zoomToCursor(currentZoom * (1 + CONFIG.zoom.step), 
+                canvasRect.width / 2, canvasRect.height / 2);
         }
         
-        // 6.3 Уменьшить (кнопка -)
-        function F6_2_zoomOut() {
-            const targetZoom = currentZoom * 0.8;
+        // 6.4 Уменьшить (относительно центра)
+        function zoomOut() {
             const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            F6_1_smoothZoom(targetZoom, canvasRect.width / 2, canvasRect.height / 2);
+            zoomToCursor(currentZoom * (1 - CONFIG.zoom.step), 
+                canvasRect.width / 2, canvasRect.height / 2);
         }
         
-        // 6.4 Сбросить вид к исходному
-        function F6_3_resetView() {
+        // 6.5 Сбросить вид с минимальными отступами
+        function resetView() {
             viewer.get('canvas').zoom('fit-viewport', { 
-                padding: { 
-                    top: 60, 
-                    bottom: 60, 
-                    left: 60, 
-                    right: 60 
-                } 
+                padding: CONFIG.padding 
             });
             currentZoom = viewer.get('canvas').zoom();
-            F11_2_updateZoomIndicator();
-            F12_1_showStatus('Вид сброшен', 'info');
+            updateZoomIndicator();
         }
         
-        // 6.5 Переключение полноэкранного режима
-        function F6_4_toggleFullscreen() {
-            const elem = document.documentElement;
-            
+        // 6.6 Переключение полноэкранного режима
+        function toggleFullscreen() {
             if (!document.fullscreenElement) {
-                // Сохраняем текущее состояние перед переходом в полноэкранный режим
                 saveViewState();
-                elem.requestFullscreen().then(() => {
-                    isFullscreen = true;
-                    document.getElementById('fullscreen-icon').textContent = 'fullscreen_exit';
-                    // В полноэкранном режиме сохраняем масштаб и позицию
-                    setTimeout(() => {
-                        restoreViewState();
-                    }, 100);
-                });
+                document.documentElement.requestFullscreen();
+                document.getElementById('fullscreen-icon').textContent = 'fullscreen_exit';
             } else {
-                // Сохраняем состояние перед выходом
                 saveViewState();
-                document.exitFullscreen().then(() => {
-                    isFullscreen = false;
-                    document.getElementById('fullscreen-icon').textContent = 'fullscreen';
-                    // После выхода восстанавливаем сохраненное состояние
-                    setTimeout(() => {
-                        restoreViewState();
-                    }, 100);
-                });
+                document.exitFullscreen();
+                document.getElementById('fullscreen-icon').textContent = 'fullscreen';
             }
         }
 
-        // ==================== 7. СОХРАНЕНИЕ И ВОССТАНОВЛЕНИЕ СОСТОЯНИЯ ====================
+        // ==================== 7. ПЕРЕТАСКИВАНИЕ (КАК В MIRO) ====================
         
-        // 7.1 Сохранить текущее состояние просмотра
-        function saveViewState() {
-            const canvas = viewer.get('canvas');
-            currentViewbox = canvas.viewbox();
-            // Сохраняем текущий zoom отдельно
-            currentZoom = canvas.zoom();
-        }
-        
-        // 7.2 Восстановить сохраненное состояние
-        function restoreViewState() {
-            if (!currentViewbox) return;
-            
-            const canvas = viewer.get('canvas');
-            try {
-                // Восстанавливаем позицию и масштаб
-                canvas.viewbox(currentViewbox);
-                // Убеждаемся, что zoom соответствует сохраненному
-                canvas.zoom(currentZoom);
-                F11_2_updateZoomIndicator();
-            } catch (e) {
-                console.warn('Не удалось восстановить состояние:', e);
-            }
-        }
-
-        // ==================== 8. ФУНКЦИИ ЗАГРУЗКИ СХЕМЫ ====================
-        
-        // 8.1 Загрузка схемы
-        async function F5_1_loadDiagram() {
-            const loadingOverlay = document.getElementById('loading-overlay');
-            loadingOverlay.classList.remove('hidden');
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
-            
-            try {
-                const response = await fetch(diagramFileName);
-                if (!response.ok) throw new Error(`Файл не найден`);
-                
-                const xml = await response.text();
-                await viewer.importXML(xml);
-                
-                // Исходная настройка вида
-                setTimeout(() => {
-                    F6_3_resetView();
-                    loadingOverlay.classList.add('hidden');
-                    F12_1_showStatus(`Схема "${diagramFileName}" загружена`, 'success');
-                }, 600);
-                
-            } catch (error) {
-                loadingOverlay.classList.add('hidden');
-                F12_1_showStatus(`Ошибка загрузки: ${error.message}`, 'error');
-                console.error('Ошибка загрузки:', error);
-            }
-        }
-
-        // ==================== 9. ОБРАБОТКА КОЛЕСИКА И ПЕРЕТАСКИВАНИЯ ====================
-        
-        // 9.1 Обработка колесика мыши
-        function F9_1_handleWheel(e) {
-            e.preventDefault();
-            
-            const delta = -Math.sign(e.deltaY) * CONFIG.zoom.stepMouse;
-            const targetZoom = currentZoom * (1 + delta * 3);
-            
-            F6_1_smoothZoom(targetZoom, e.clientX, e.clientY);
-        }
-
-        // 9.2 Начать перетаскивание
-        function F7_1_startDrag(clientX, clientY) {
+        // 7.1 Начать перетаскивание
+        function startDrag(clientX, clientY) {
             isDragging = true;
             lastMouseX = clientX;
             lastMouseY = clientY;
             document.getElementById('canvas').classList.add('grabbing');
         }
         
-        // 9.3 Перетаскивание
-        function F7_2_doDrag(clientX, clientY) {
+        // 7.2 Перетаскивание (плавное и свободное)
+        function doDrag(clientX, clientY) {
             if (!isDragging) return;
             
             const dx = clientX - lastMouseX;
             const dy = clientY - lastMouseY;
             
-            const canvas = viewer.get('canvas');
-            canvas.scroll({ dx: -dx, dy: -dy });
+            // Прокручиваем схему (отрицательные значения для интуитивного движения)
+            viewer.get('canvas').scroll({ 
+                dx: -dx / currentZoom, 
+                dy: -dy / currentZoom 
+            });
             
             lastMouseX = clientX;
             lastMouseY = clientY;
-            
-            // Сохраняем состояние при перетаскивании
-            saveViewState();
         }
         
-        // 9.4 Закончить перетаскивание
-        function F7_3_endDrag() {
+        // 7.3 Закончить перетаскивание
+        function endDrag() {
             isDragging = false;
             document.getElementById('canvas').classList.remove('grabbing');
         }
 
-        // ==================== 10. ОБРАБОТЧИКИ СОБЫТИЙ ====================
+        // ==================== 8. ОБРАБОТКА КОЛЕСИКА ====================
         
-        // 10.1 Настройка обработчиков
-        function F10_1_setupEventListeners() {
+        // 8.1 Обработка колесика мыши (плавный зум к курсору)
+        function handleWheel(e) {
+            e.preventDefault();
+            
+            const delta = -Math.sign(e.deltaY) * CONFIG.zoom.wheelStep * 2;
+            const targetZoom = currentZoom * (1 + delta);
+            
+            zoomToCursor(targetZoom, e.clientX, e.clientY);
+        }
+
+        // ==================== 9. ЗАГРУЗКА СХЕМЫ ====================
+        
+        // 9.1 Загрузка схемы
+        async function loadDiagram() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
+            
+            try {
+                const response = await fetch(diagramFileName);
+                if (!response.ok) throw new Error('Файл не найден');
+                
+                const xml = await response.text();
+                await viewer.importXML(xml);
+                
+                // Сбрасываем вид с минимальными отступами
+                setTimeout(resetView, 100);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+            }
+        }
+
+        // ==================== 10. СОХРАНЕНИЕ СОСТОЯНИЯ ====================
+        
+        // 10.1 Сохранить состояние просмотра
+        function saveViewState() {
+            const canvas = viewer.get('canvas');
+            savedState = {
+                viewbox: canvas.viewbox(),
+                zoom: canvas.zoom()
+            };
+        }
+        
+        // 10.2 Восстановить состояние
+        function restoreViewState() {
+            if (!savedState) return;
+            
+            const canvas = viewer.get('canvas');
+            try {
+                canvas.viewbox(savedState.viewbox);
+                canvas.zoom(savedState.zoom);
+                currentZoom = savedState.zoom;
+                updateZoomIndicator();
+            } catch (e) {
+                console.warn('Не удалось восстановить состояние');
+            }
+        }
+
+        // ==================== 11. ОБРАБОТЧИКИ СОБЫТИЙ ====================
+        
+        // 11.1 Настройка обработчиков
+        function setupEventListeners() {
             const canvas = document.getElementById('canvas');
             
             // Мышь
             canvas.addEventListener('mousedown', (e) => {
                 if (e.button === 0) {
-                    F7_1_startDrag(e.clientX, e.clientY);
+                    startDrag(e.clientX, e.clientY);
                 }
             });
             
             document.addEventListener('mousemove', (e) => {
-                F7_2_doDrag(e.clientX, e.clientY);
+                doDrag(e.clientX, e.clientY);
             });
             
-            document.addEventListener('mouseup', F7_3_endDrag);
+            document.addEventListener('mouseup', endDrag);
             
-            // Колесико
-            canvas.addEventListener('wheel', F9_1_handleWheel, { passive: false });
+            // Колесико (пассивное, чтобы не блокировать скролл)
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
             
-            // Изменение размера окна - БЕЗ сброса, только восстановление
+            // Изменение размера окна - сохраняем состояние
             window.addEventListener('resize', () => {
                 if (resizeTimeout) clearTimeout(resizeTimeout);
                 
-                // Ждем окончания изменения размера
+                saveViewState();
                 resizeTimeout = setTimeout(() => {
-                    if (currentViewbox) {
-                        restoreViewState();
-                    }
-                }, 150);
+                    restoreViewState();
+                }, 100);
             });
             
-            // Полноэкранный режим - обновление иконки
+            // Полноэкранный режим
             document.addEventListener('fullscreenchange', () => {
-                isFullscreen = !!document.fullscreenElement;
-                document.getElementById('fullscreen-icon').textContent = 
-                    isFullscreen ? 'fullscreen_exit' : 'fullscreen';
+                const icon = document.getElementById('fullscreen-icon');
+                icon.textContent = document.fullscreenElement ? 
+                    'fullscreen_exit' : 'fullscreen';
                 
-                // При изменении полноэкранного режима сохраняем состояние
-                setTimeout(() => {
-                    if (currentViewbox) {
-                        restoreViewState();
-                    }
-                }, 100);
+                saveViewState();
+                setTimeout(restoreViewState, 50);
             });
         }
 
-        // ==================== 11. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        
-        // 11.1 Горячие клавиши
-        function F11_1_setupKeyboardShortcuts() {
+        // 11.2 Горячие клавиши
+        function setupKeyboardShortcuts() {
             document.addEventListener('keydown', (e) => {
-                // Ctrl + + для увеличения
-                if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=')) {
-                    e.preventDefault();
-                    F6_1_zoomIn();
-                }
-                
-                // Ctrl + - для уменьшения
-                if ((e.ctrlKey || e.metaKey) && e.key === '-') {
-                    e.preventDefault();
-                    F6_2_zoomOut();
+                // Ctrl + +/- для зума
+                if ((e.ctrlKey || e.metaKey)) {
+                    if (e.key === '+' || e.key === '=') {
+                        e.preventDefault();
+                        zoomIn();
+                    } else if (e.key === '-') {
+                        e.preventDefault();
+                        zoomOut();
+                    }
                 }
                 
                 // 0 для сброса
                 if (e.key === '0') {
                     e.preventDefault();
-                    F6_3_resetView();
+                    resetView();
                 }
                 
                 // F11 для полноэкранного режима
                 if (e.key === 'F11') {
                     e.preventDefault();
-                    F6_4_toggleFullscreen();
+                    toggleFullscreen();
                 }
             });
         }
+
+        // ==================== 12. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
         
-        // 11.2 Обновление индикатора масштаба
-        function F11_2_updateZoomIndicator() {
+        // 12.1 Обновление индикатора масштаба
+        function updateZoomIndicator() {
             const zoomPercent = Math.round(currentZoom * 100);
             document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
-            
-            // Анимация изменения
-            const indicator = document.getElementById('zoom-level');
-            indicator.style.transform = 'scale(1.1)';
-            setTimeout(() => {
-                indicator.style.transform = 'scale(1)';
-            }, 200);
         }
 
-        // ==================== 12. ЗАПУСК ====================
+        // ==================== 13. ЗАПУСК ====================
         
-        // 12.1 Запуск приложения
-        function F12_1_startApplication() {
-            F4_1_initViewer();
-            F5_1_loadDiagram();
+        // 13.1 Запуск приложения
+        async function startApplication() {
+            initViewer();
+            await loadDiagram();
         }
 
-        // 12.2 Запуск при загрузке
-        document.addEventListener('DOMContentLoaded', F12_1_startApplication);
+        // 13.2 Запуск при загрузке
+        document.addEventListener('DOMContentLoaded', startApplication);
     </script>
 </body>
 </html>
