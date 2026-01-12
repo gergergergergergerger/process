@@ -237,18 +237,23 @@
             }
         }
 
-        // === ЗУМ ОТНОСИТЕЛЬНО КУРСОРА ===
-        function zoomWithCursor(zoomDelta, clientX, clientY) {
+                // === ЗУМ ОТНОСИТЕЛЬНО ЦЕНТРА ЭКРАНА ===
+        function zoomWithCursor(zoomDelta) {
             const canvas = viewer.get('canvas');
             const currentZoom = canvas.zoom();
             const viewport = canvas.viewbox();
             
-            const x = (clientX - viewport.x) / currentZoom;
-            const y = (clientY - viewport.y) / currentZoom;
+            // Центр видимой области (экрана)
+            const centerX = viewport.x + viewport.width / 2;
+            const centerY = viewport.y + viewport.height / 2;
             
             const newZoom = Math.max(CONFIG.zoom.min, 
                 Math.min(CONFIG.zoom.max, currentZoom * (1 + zoomDelta)));
-            canvas.zoom(newZoom, { x, y });
+            
+            canvas.zoom(newZoom, { 
+                x: centerX, 
+                y: centerY 
+            });
             showControlsTemporarily();
         }
 
@@ -303,66 +308,43 @@
                 const scale = currentDist / touchZoomData.initialDistance;
                 const newZoom = Math.max(CONFIG.zoom.min, 
                     Math.min(CONFIG.zoom.max, touchZoomData.initialZoom * scale));
-                const centerX = (t1.clientX + t2.clientX) / 2;
-                const centerY = (t1.clientY + t2.clientY) / 2;
                 
-                viewer.get('canvas').zoom(newZoom, { x: centerX, y: centerY });
+                // Зум относительно центра экрана, а не точки касания
+                const canvas = viewer.get('canvas');
+                const viewport = canvas.viewbox();
+                const screenCenterX = viewport.x + viewport.width / 2;
+                const screenCenterY = viewport.y + viewport.height / 2;
+                canvas.zoom(newZoom, { x: screenCenterX, y: screenCenterY });
             }
             showControlsTemporarily();
         }
 
-        // === КОНТЕКСТНЫЕ ОПИСАНИЯ ЭЛЕМЕНТОВ ===
-        async function loadDescriptions() {
-            try {
-                const response = await fetch('descriptions.json');
-                elementDescriptions = await response.json();
-            } catch {
-                console.info('Файл описаний не загружен');
-            }
-        }
-
-        function showElementInfo(elementId) {
-            const info = elementDescriptions.elements?.[elementId];
-            if (!info) {
-                alert(`Элемент: ${elementId}\nОписание отсутствует.`);
-                return;
-            }
+        // === НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ ===
+        function setupEventListeners() {
+            const canvas = document.getElementById('canvas');
             
-            const popup = document.createElement('div');
-            popup.className = 'element-popup';
-            popup.innerHTML = `
-                <h3>${info.name || 'Элемент'}</h3>
-                ${info.description ? `<p><strong>Описание:</strong> ${info.description}</p>` : ''}
-                ${info.responsible ? `<p><strong>Ответственный:</strong> ${info.responsible}</p>` : ''}
-                ${info.deadline ? `<p><strong>Срок:</strong> ${info.deadline}</p>` : ''}
-                ${info.type ? `<p><strong>Тип:</strong> ${info.type}</p>` : ''}
-                <p><small style="color:#777;">ID: ${elementId}</small></p>
-                <button class="close" onclick="this.closest('.element-popup').remove()">Закрыть</button>
-            `;
+            // Колесико мыши (зум относительно центра)
+            canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                zoomWithCursor(-e.deltaY * CONFIG.zoom.stepMouse);
+            }, { passive: false });
             
-            document.body.appendChild(popup);
-            popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
-        }
-
-        function setupElementClick() {
-            viewer.on('element.click', e => {
-                const type = e.element.type;
-                if (type.includes('Task') || type.includes('Gateway')) {
-                    showElementInfo(e.element.id);
-                }
+            // Касания
+            canvas.addEventListener('touchstart', e => {
+                if (e.touches.length === 2) handleTouchZoom(e);
+                showControlsTemporarily();
             });
-        }
-
-        // === УПРАВЛЕНИЕ ПАНЕЛЬЮ ===
-        function showControlsTemporarily() {
-            const controls = document.getElementById('controls');
-            if (window.innerWidth <= 480) {
-                controls.classList.remove('auto-hide');
-                clearTimeout(hideControlsTimer);
-                hideControlsTimer = setTimeout(() => {
-                    controls.classList.add('auto-hide');
-                }, 3000);
-            }
+            canvas.addEventListener('touchmove', e => {
+                if (e.touches.length === 2) handleTouchZoom(e);
+            });
+            canvas.addEventListener('touchend', () => {
+                touchZoomData.initialDistance = 0;
+            });
+            
+            // Показ панели при движении мыши
+            document.addEventListener('mousemove', () => {
+                if (window.innerWidth <= 480) showControlsTemporarily();
+            });
         }
 
         // === НАСТРОЙКА ВСЕХ ОБРАБОТЧИКОВ ===
