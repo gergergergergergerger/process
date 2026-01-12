@@ -5,33 +5,118 @@
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@14/dist/assets/bpmn-js.css">
     <script src="https://unpkg.com/bpmn-js@14/dist/bpmn-navigated-viewer.development.js"></script>
     <style>
-        html, body { margin:0; padding:0; height:100%; width:100%; overflow:hidden; }
-        #canvas { width:100%; height:100%; background:#f8f8f8; }
-        #controls {
-            position: absolute; top:15px; left:15px;
-            background:white; padding:10px; border-radius:5px;
-            box-shadow:0 2px 5px rgba(0,0,0,0.2); z-index:100;
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
         }
-        button { margin:0 5px; padding:8px 12px; cursor:pointer; }
+        #canvas {
+            width: 100%;
+            height: 100%;
+            background: #f8f8f8;
+        }
+        /* Стили панели управления */
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(0,0,0,0.1);
+            max-width: calc(100vw - 40px);
+            box-sizing: border-box;
+        }
+        #controls button {
+            margin: 0;
+            padding: 8px 10px;
+            cursor: pointer;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            background-color: #ffffff;
+            font-size: 18px;
+            line-height: 1;
+            min-width: 0;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #controls button:hover {
+            background-color: #f0f0f0;
+            border-color: #a0a0a0;
+            transform: translateY(-1px);
+        }
+        #status {
+            margin-left: 10px;
+            color: #555;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 200px;
+        }
+        /* Адаптивность для планшетов и телефонов */
+        @media (max-width: 768px) {
+            #controls {
+                top: 6px;
+                left: 6px;
+                right: 6px;
+                padding: 5px 6px;
+                border-radius: 6px;
+                gap: 3px;
+                max-width: none;
+                width: calc(100vw - 12px);
+            }
+            #controls button {
+                padding: 6px 8px;
+                font-size: 16px;
+                flex: 1;
+            }
+            #status {
+                font-size: 11px;
+                max-width: 120px;
+                margin-left: 6px;
+            }
+        }
+        @media (max-width: 480px) {
+            #controls button {
+                padding: 5px 6px;
+                font-size: 15px;
+            }
+            #status {
+                display: none; /* Скрываем текст на маленьких экранах */
+            }
+        }
     </style>
 </head>
 <body>
     <div id="canvas"></div>
+    <!-- Панель управления с иконками -->
     <div id="controls">
-        <button onclick="zoomIn()">+ Увеличить</button>
-        <button onclick="zoomOut()">- Уменьшить</button>
-        <button onclick="resetView()">Сбросить вид</button>
-        <button onclick="enterFullscreen()">На весь экран</button>
-        <span style="margin-left:10px; color:#666;" id="status">Загрузка...</span>
+        <button onclick="zoomIn()" title="Увеличить">➕</button>
+        <button onclick="zoomOut()" title="Уменьшить">➖</button>
+        <button onclick="resetView()" title="Сбросить вид">🗘</button>
+        <button onclick="enterFullscreen()" title="На весь экран">⛶</button>
+        <span id="status">Загрузка...</span>
     </div>
 
     <script>
-        // 1. Инициализируем просмотрщик
+        // 1. Инициализация просмотрщика
         const viewer = new BpmnJS({
             container: document.getElementById('canvas')
         });
 
-        // 2. Получаем имя файла из параметра ?diagram= в ссылке
+        // 2. Получаем имя файла из параметра ?diagram= в URL
         const urlParams = new URLSearchParams(window.location.search);
         const diagramFileName = urlParams.get('diagram') || '1zayavka.bpmn';
 
@@ -47,8 +132,9 @@
                 }
                 const xml = await response.text();
                 await viewer.importXML(xml);
-                statusElement.textContent = `Схема загружена: ${diagramFileName}`;
-                viewer.get('canvas').zoom('fit-viewport');
+                statusElement.textContent = `Схема: ${diagramFileName}`;
+                // Уменьшаем пустое пространство вокруг схемы
+                viewer.get('canvas').zoom('fit-viewport', { padding: 20 });
             } catch (error) {
                 console.error('Ошибка загрузки схемы:', error);
                 statusElement.textContent = 'Ошибка загрузки';
@@ -64,37 +150,35 @@
             }
         }
 
-        // 4. Функции управления
-        function zoomIn() { viewer.get('zoomScroll').stepZoom(0.2); }
-        function zoomOut() { viewer.get('zoomScroll').stepZoom(-0.2); }
-        function resetView() { viewer.get('canvas').zoom('fit-viewport'); }
+        // 4. Функции управления для кнопок
+        function zoomIn() {
+            viewer.get('zoomScroll').stepZoom(0.2);
+        }
+        function zoomOut() {
+            viewer.get('zoomScroll').stepZoom(-0.2);
+        }
+        function resetView() {
+            viewer.get('canvas').zoom('fit-viewport', { padding: 20 });
+        }
         function enterFullscreen() {
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen();
             }
         }
 
-        // 5. Загружаем схему при старте
-        window.addEventListener('DOMContentLoaded', loadDiagram);
-        
-        // 6. Масштабирование колесиком мыши
+        // 5. Масштабирование колесиком мыши
         document.getElementById('canvas').addEventListener('wheel', function(event) {
-            // Отменяем стандартное действие браузера (скролл страницы)
             event.preventDefault();
-            
-            // Определяем направление прокрутки
-            // deltaY > 0 - прокрутка вниз (уменьшение)
-            // deltaY < 0 - прокрутка вверх (увеличение)
-            const zoomStep = 0.05; // Шаг масштабирования (можно настроить)
-            const delta = -event.deltaY; // Инвертируем для привычного поведения
-            
-            // Применяем масштабирование
+            const delta = -event.deltaY;
             if (delta > 0) {
                 zoomIn();
             } else {
                 zoomOut();
             }
         });
+
+        // 6. Загружаем схему при старте
+        window.addEventListener('DOMContentLoaded', loadDiagram);
     </script>
 </body>
 </html>
