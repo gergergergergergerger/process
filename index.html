@@ -227,37 +227,66 @@
             }
         }
 
-                // ===== МАСШТАБИРОВАНИЕ КОЛЁСИКОМ (ИСПРАВЛЕНО - инвертировано) =====
+                // ===== МАСШТАБИРОВАНИЕ КОЛЁСИКОМ (ИСПРАВЛЕННАЯ) =====
         function handleWheel(e) {
             e.preventDefault();
             
+            // 1. ПОЛУЧАЕМ ТЕКУЩИЙ ВИД
             const canvas = viewer.get('canvas');
-            const viewbox = canvas.viewbox();
+            const currentViewbox = canvas.viewbox(); // {x, y, width, height}
             
-            // 1. Координаты курсора на экране в пикселях схемы
-            const diagramX = viewbox.x + (e.clientX / currentZoom);
-            const diagramY = viewbox.y + (e.clientY / currentZoom);
+            // 2. ГДЕ КУРСОР НА СХЕМЕ? (в пикселях схемы)
+            // Это точка, которую мы хотим оставить под курсором после зума
+            const cursorXInDiagram = currentViewbox.x + (e.clientX / currentZoom);
+            const cursorYInDiagram = currentViewbox.y + (e.clientY / currentZoom);
             
-            // 2. ИНВЕРТИРОВАННОЕ направление: вниз = уменьшение, вверх = увеличение
-            const zoomChange = (e.deltaY > 0 ? -0.15 : 0.15) * CONFIG.zoom.wheelSensitivity;
-            const newZoom = Math.max(CONFIG.zoom.min, 
-                Math.min(CONFIG.zoom.max, currentZoom * (1 + zoomChange)));
+            // 3. НА СКОЛЬКО МЕНЯЕМ МАСШТАБ
+            // Берем фиксированный шаг, а не умножаем на deltaY
+            const zoomStep = 0.15; // 15% за шаг
             
-            // 3. Пересчет смещения для фиксации точки под курсором
-            const newX = diagramX - (e.clientX / newZoom);
-            const newY = diagramY - (e.clientY / newZoom);
+            // Определяем направление
+            let zoomMultiplier;
+            if (e.deltaY < 0) {
+                // Колесико ВВЕРХ (от себя) - УВЕЛИЧЕНИЕ
+                zoomMultiplier = 1 + zoomStep;
+            } else {
+                // Колесико ВНИЗ (к себе) - УМЕНЬШЕНИЕ
+                zoomMultiplier = 1 - zoomStep;
+            }
             
-            // 4. Применяем зум К ПРОТИВОПОЛОЖНОЙ точке
-            canvas.zoom(newZoom);
+            // 4. ВЫЧИСЛЯЕМ НОВЫЙ МАСШТАБ
+            const newZoom = currentZoom * zoomMultiplier;
+            
+            // Ограничиваем мин/макс
+            const clampedZoom = Math.max(CONFIG.zoom.min, 
+                                        Math.min(CONFIG.zoom.max, newZoom));
+            
+            // 5. ВЫЧИСЛЯЕМ НОВОЕ СМЕЩЕНИЕ (чтобы курсор остался на той же точке схемы)
+            const newViewboxX = cursorXInDiagram - (e.clientX / clampedZoom);
+            const newViewboxY = cursorYInDiagram - (e.clientY / clampedZoom);
+            
+            // 6. ПРИМЕНЯЕМ ИЗМЕНЕНИЯ
             canvas.viewbox({
-                x: newX,
-                y: newY,
-                width: viewbox.width,
-                height: viewbox.height
+                x: newViewboxX,
+                y: newViewboxY,
+                width: currentViewbox.width,
+                height: currentViewbox.height
             });
             
-            currentZoom = newZoom;
+            // Обновляем масштаб отдельно
+            canvas.zoom(clampedZoom);
+            
+            // 7. ОБНОВЛЯЕМ ГЛОБАЛЬНУЮ ПЕРЕМЕННУЮ
+            currentZoom = clampedZoom;
+            
+            // 8. ОБНОВЛЯЕМ ИНДИКАТОР
             updateZoomIndicator();
+            
+            console.log('Зум:', {
+                старое: currentZoom / zoomMultiplier,
+                новое: currentZoom,
+                изменение: `${zoomStep > 0 ? '+' : ''}${(zoomStep * 100).toFixed(0)}%`
+            });
         }
 
         // ===== ПЕРЕТАСКИВАНИЕ (ИСПРАВЛЕНО - правильное направление) =====
