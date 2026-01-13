@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/bpmn-js.css">
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/diagram-js.css">
     <script src="https://unpkg.com/bpmn-js@15.0.0/dist/bpmn-viewer.production.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         * {
@@ -49,7 +50,7 @@
             transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Панель управления - как в оригинале */
+        /* Панель управления */
         #controls {
             position: fixed;
             top: 20px;
@@ -65,8 +66,8 @@
             gap: 8px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
-            min-width: 300px;
-            max-width: 400px;
+            min-width: 320px;
+            max-width: 420px;
         }
 
         .control-btn {
@@ -120,6 +121,142 @@
             font-variant-numeric: tabular-nums;
         }
 
+        /* Модальное окно с горячими клавишами */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: none;
+            background: #f7fafc;
+            color: #4a5568;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: #edf2f7;
+            color: #2d3748;
+        }
+
+        .modal-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .hotkey-group {
+            margin-bottom: 24px;
+        }
+
+        .hotkey-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .hotkey-group h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hotkey-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f7fafc;
+        }
+
+        .hotkey-item:last-child {
+            border-bottom: none;
+        }
+
+        .hotkey-item span:first-child {
+            color: #2d3748;
+            font-size: 14px;
+        }
+
+        .hotkey-keys {
+            display: flex;
+            gap: 4px;
+        }
+
+        .key {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 36px;
+            text-align: center;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .key.combo {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+        }
+
         /* Loading */
         .loading-overlay {
             position: fixed;
@@ -151,27 +288,12 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Сетка */
-        .grid-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: 0.5;
-        }
-
         /* Адаптивность */
         @media (max-width: 640px) {
             #controls {
                 top: 15px;
                 padding: 8px 12px;
-                min-width: 280px;
+                min-width: 300px;
                 gap: 6px;
             }
             
@@ -185,6 +307,27 @@
                 font-size: 12px;
                 padding: 4px 10px;
             }
+            
+            .modal {
+                width: 95%;
+                max-height: 85vh;
+            }
+            
+            .modal-content {
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #controls {
+                min-width: 280px;
+            }
+            
+            .control-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -197,20 +340,135 @@
 
     <!-- Контейнер схемы -->
     <div id="canvas-container">
-        <div class="grid-pattern"></div>
         <div id="canvas"></div>
     </div>
 
     <!-- Панель управления -->
     <div id="controls">
-        <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">+</button>
-        <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">-</button>
-        <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↻</button>
-        <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
+        <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">
+            <i class="fas fa-search-plus"></i>
+        </button>
+        <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">
+            <i class="fas fa-search-minus"></i>
+        </button>
+        <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">
+            <i class="fas fa-expand-alt"></i>
+        </button>
+        <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">
+            <i class="fas fa-expand"></i>
+        </button>
+        <button class="control-btn" onclick="showHotkeys()" title="Горячие клавиши (?)">
+            <i class="fas fa-keyboard"></i>
+        </button>
         
         <div id="zoom-indicator">
-            <span>Масштаб:</span>
+            <i class="fas fa-search"></i>
             <span id="zoom-level">100%</span>
+        </div>
+    </div>
+
+    <!-- Модальное окно с горячими клавишами -->
+    <div class="modal-overlay" id="hotkeysModal" onclick="hideHotkeys(event)">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3>Горячие клавиши</h3>
+                <button class="modal-close" onclick="hideHotkeys()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="hotkey-group">
+                    <h4>Навигация</h4>
+                    <div class="hotkey-item">
+                        <span>Перетаскивание схемы</span>
+                        <div class="hotkey-keys">
+                            <span class="key">ЛКМ</span>
+                            <span class="key">+</span>
+                            <span class="key">Drag</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Масштабирование колесом</span>
+                        <div class="hotkey-keys">
+                            <span class="key">Колесо мыши</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Центрировать схему</span>
+                        <div class="hotkey-keys">
+                            <span class="key">C</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotkey-group">
+                    <h4>Масштабирование</h4>
+                    <div class="hotkey-item">
+                        <span>Увеличить</span>
+                        <div class="hotkey-keys">
+                            <span class="key combo">Ctrl</span>
+                            <span class="key">+</span>
+                            <span class="key combo">Колесо вверх</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Уменьшить</span>
+                        <div class="hotkey-keys">
+                            <span class="key combo">Ctrl</span>
+                            <span class="key">-</span>
+                            <span class="key combo">Колесо вниз</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Сбросить масштаб</span>
+                        <div class="hotkey-keys">
+                            <span class="key">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotkey-group">
+                    <h4>Интерфейс</h4>
+                    <div class="hotkey-item">
+                        <span>Полноэкранный режим</span>
+                        <div class="hotkey-keys">
+                            <span class="key">F11</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Показать горячие клавиши</span>
+                        <div class="hotkey-keys">
+                            <span class="key">?</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Закрыть модальное окно</span>
+                        <div class="hotkey-keys">
+                            <span class="key">Esc</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hotkey-group">
+                    <h4>Мобильные жесты</h4>
+                    <div class="hotkey-item">
+                        <span>Перетаскивание</span>
+                        <div class="hotkey-keys">
+                            <span class="key">Касание</span>
+                            <span class="key">+</span>
+                            <span class="key">Перемещение</span>
+                        </div>
+                    </div>
+                    <div class="hotkey-item">
+                        <span>Масштабирование</span>
+                        <div class="hotkey-keys">
+                            <span class="key">Два пальца</span>
+                            <span class="key">+</span>
+                            <span class="key">Разведение/сведение</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -223,13 +481,12 @@
             zoom: {
                 min: 0.02,      // 2%
                 max: 20,        // 2000%
-                step: 0.08,     // 8% за шаг (меньше = плавнее)
-                wheelSmoothness: 0.7, // 0-1, чем выше - тем плавнее
-                animationDuration: 180, // мс
-                easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' // easing как в Figma
+                step: 0.08,     // 8% за шаг
+                wheelSmoothness: 0.7,
+                animationDuration: 180,
+                easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
             },
             
-            // Перетаскивание
             drag: {
                 sensitivity: 1.0
             }
@@ -248,11 +505,9 @@
         
         // Для плавного зума
         let zoomAnimation = null;
-        let targetZoom = null;
-        let zoomStart = null;
-        let zoomTargetX = null;
-        let zoomTargetY = null;
         let zoomStartTime = null;
+        let zoomStartValues = null;
+        let zoomTargetValues = null;
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         async function init() {
@@ -316,6 +571,13 @@
             }
         }
 
+        // === ОБНОВЛЕНИЕ СОСТОЯНИЯ ИЗ CANVAS ===
+        function updateStateFromCanvas() {
+            if (!canvas) return;
+            viewbox = canvas.viewbox();
+            currentZoom = canvas.zoom();
+        }
+
         // === ПЛАВНОЕ МАСШТАБИРОВАНИЕ КОЛЁСИКОМ ===
         function handleWheel(event) {
             event.preventDefault();
@@ -328,98 +590,117 @@
             const mouseY = event.clientY - rect.top;
             
             // Определяем направление и силу зума
-            // Используем более плавное изменение через экспоненту
-            const delta = -event.deltaY * 0.0005; // Меньше = плавнее
-            
-            // Вычисляем коэффициент зума
+            const delta = -event.deltaY * 0.0005;
             const zoomFactor = Math.exp(delta * CONFIG.zoom.wheelSmoothness);
+            
+            // Обновляем состояние из canvas перед зумом
+            updateStateFromCanvas();
             
             // Вызываем плавный зум
             smoothZoomToPoint(mouseX, mouseY, zoomFactor);
         }
 
-        // === ПЛАВНЫЙ ЗУМ К ТОЧКЕ (С АНИМАЦИЕЙ) ===
+        // === ПЛАВНЫЙ ЗУМ К ТОЧКЕ ===
         function smoothZoomToPoint(mouseX, mouseY, zoomFactor) {
             // Отменяем предыдущую анимацию
             if (zoomAnimation) {
                 cancelAnimationFrame(zoomAnimation);
             }
             
+            // Получаем текущее состояние
+            updateStateFromCanvas();
+            
             // Текущая позиция курсора в системе координат схемы
             const diagramX = viewbox.x + (mouseX / currentZoom);
             const diagramY = viewbox.y + (mouseY / currentZoom);
             
             // Вычисляем целевой масштаб
-            let newZoom = currentZoom * zoomFactor;
+            let targetZoom = currentZoom * zoomFactor;
+            targetZoom = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, targetZoom));
             
-            // Ограничиваем мин/макс
-            newZoom = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, newZoom));
+            if (Math.abs(targetZoom - currentZoom) < 0.001) return;
             
-            // Если масштаб не изменился - выходим
-            if (Math.abs(newZoom - currentZoom) < 0.001) return;
+            // Вычисляем целевые координаты viewbox
+            const targetX = diagramX - (mouseX / targetZoom);
+            const targetY = diagramY - (mouseY / targetZoom);
             
-            // Вычисляем новые координаты viewbox
-            const newViewboxX = diagramX - (mouseX / newZoom);
-            const newViewboxY = diagramY - (mouseY / newZoom);
+            // Сохраняем начальные и целевые значения
+            zoomStartValues = {
+                zoom: currentZoom,
+                x: viewbox.x,
+                y: viewbox.y
+            };
             
-            // Запускаем плавную анимацию
-            animateZoom(currentZoom, newZoom, viewbox.x, newViewboxX, viewbox.y, newViewboxY);
+            zoomTargetValues = {
+                zoom: targetZoom,
+                x: targetX,
+                y: targetY
+            };
+            
+            // Запускаем анимацию
+            zoomStartTime = performance.now();
+            animateZoom();
         }
 
         // === АНИМАЦИЯ ПЛАВНОГО ЗУМА ===
-        function animateZoom(startZoom, endZoom, startX, endX, startY, endY) {
-            zoomStart = performance.now();
-            zoomStartTime = zoomStart;
-            targetZoom = endZoom;
-            zoomTargetX = endX;
-            zoomTargetY = endY;
+        function animateZoom() {
+            const now = performance.now();
+            const elapsed = now - zoomStartTime;
+            const progress = Math.min(elapsed / CONFIG.zoom.animationDuration, 1);
             
-            function animate(currentTime) {
-                const elapsed = currentTime - zoomStartTime;
-                const progress = Math.min(elapsed / CONFIG.zoom.animationDuration, 1);
-                
-                // Кривая плавности (easing function)
-                const ease = easeOutCubic(progress);
-                
-                // Интерполируем значения
-                const currentZoomValue = startZoom + (endZoom - startZoom) * ease;
-                const currentX = startX + (endX - startX) * ease;
-                const currentY = startY + (endY - startY) * ease;
-                
-                // Применяем к canvas
-                canvas.viewbox({
-                    x: currentX,
-                    y: currentY,
-                    width: viewbox.width,
-                    height: viewbox.height
-                });
-                canvas.zoom(currentZoomValue);
-                
-                // Обновляем глобальные переменные
-                currentZoom = currentZoomValue;
-                viewbox.x = currentX;
-                viewbox.y = currentY;
-                
-                // Обновляем индикатор
-                updateZoomIndicator();
-                
-                if (progress < 1) {
-                    zoomAnimation = requestAnimationFrame(animate);
-                } else {
-                    zoomAnimation = null;
-                }
+            // Easing функция
+            const ease = easeOutCubic(progress);
+            
+            // Интерполируем значения
+            const currentZoomValue = zoomStartValues.zoom + 
+                (zoomTargetValues.zoom - zoomStartValues.zoom) * ease;
+            const currentX = zoomStartValues.x + 
+                (zoomTargetValues.x - zoomStartValues.x) * ease;
+            const currentY = zoomStartValues.y + 
+                (zoomTargetValues.y - zoomStartValues.y) * ease;
+            
+            // Применяем к canvas
+            canvas.viewbox({
+                x: currentX,
+                y: currentY,
+                width: viewbox.width,
+                height: viewbox.height
+            });
+            canvas.zoom(currentZoomValue);
+            
+            // Обновляем глобальные переменные
+            viewbox.x = currentX;
+            viewbox.y = currentY;
+            currentZoom = currentZoomValue;
+            
+            // Обновляем индикатор
+            updateZoomIndicator();
+            
+            if (progress < 1) {
+                zoomAnimation = requestAnimationFrame(animateZoom);
+            } else {
+                zoomAnimation = null;
+                // После завершения анимации обновляем состояние
+                updateStateFromCanvas();
             }
-            
-            zoomAnimation = requestAnimationFrame(animate);
         }
 
-        // === ПЕРЕТАСКИВАНИЕ ТОЛЬКО ЛКМ ===
+        // === ПЕРЕТАСКИВАНИЕ ЛКМ (СИНХРОНИЗИРОВАНО С МАСШТАБОМ) ===
         function setupDragging() {
             const container = document.getElementById('canvas-container');
             
             container.addEventListener('mousedown', (e) => {
-                // ТОЛЬКО левая кнопка мыши (button === 0)
+                // ТОЛЬКО левая кнопка мыши
                 if (e.button !== 0) return;
+                
+                // Отменяем анимацию зума
+                if (zoomAnimation) {
+                    cancelAnimationFrame(zoomAnimation);
+                    zoomAnimation = null;
+                }
+                
+                // Обновляем состояние из canvas перед началом перетаскивания
+                updateStateFromCanvas();
                 
                 isDragging = true;
                 dragStart.x = e.clientX;
@@ -434,7 +715,7 @@
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
                 
-                // Вычисляем смещение
+                // Вычисляем смещение с учетом текущего масштаба
                 const dx = (e.clientX - dragStart.x) / currentZoom * CONFIG.drag.sensitivity;
                 const dy = (e.clientY - dragStart.y) / currentZoom * CONFIG.drag.sensitivity;
                 
@@ -442,7 +723,7 @@
                 viewbox.x = viewboxStart.x - dx;
                 viewbox.y = viewboxStart.y - dy;
                 
-                // Применяем изменения
+                // Применяем изменения к canvas
                 canvas.viewbox(viewbox);
                 
                 e.preventDefault();
@@ -452,6 +733,8 @@
                 if (isDragging) {
                     isDragging = false;
                     container.classList.remove('dragging');
+                    // После перетаскивания обновляем состояние
+                    updateStateFromCanvas();
                 }
             });
             
@@ -463,12 +746,14 @@
         function zoomIn() {
             const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
+            updateStateFromCanvas();
             smoothZoomToPoint(rect.width / 2, rect.height / 2, 1 + CONFIG.zoom.step);
         }
 
         function zoomOut() {
             const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
+            updateStateFromCanvas();
             smoothZoomToPoint(rect.width / 2, rect.height / 2, 1 - CONFIG.zoom.step);
         }
 
@@ -476,11 +761,8 @@
             // Используем встроенную функцию fit-viewport
             canvas.zoom('fit-viewport', { padding: 40 });
             
-            // Обновляем переменные
-            currentZoom = canvas.zoom();
-            viewbox = canvas.viewbox();
-            
-            // Обновляем индикатор
+            // Обновляем состояние
+            updateStateFromCanvas();
             updateZoomIndicator();
         }
 
@@ -490,6 +772,16 @@
             } else {
                 document.exitFullscreen();
             }
+        }
+
+        // === МОДАЛЬНОЕ ОКНО С ГОРЯЧИМИ КЛАВИШАМИ ===
+        function showHotkeys() {
+            document.getElementById('hotkeysModal').classList.add('active');
+        }
+
+        function hideHotkeys(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('hotkeysModal').classList.remove('active');
         }
 
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
@@ -537,6 +829,7 @@
             
             container.addEventListener('touchend', (e) => {
                 document.dispatchEvent(new MouseEvent('mouseup'));
+                window.lastPinchDistance = null;
             });
             
             // Горячие клавиши
@@ -555,27 +848,60 @@
                     }
                 }
                 
-                // F11 для полноэкранного режима
-                if (e.key === 'F11') {
-                    e.preventDefault();
-                    toggleFullscreen();
+                // Одиночные клавиши
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    switch (e.key) {
+                        case '0':
+                            e.preventDefault();
+                            resetView();
+                            break;
+                        case 'c':
+                        case 'C':
+                            e.preventDefault();
+                            centerView();
+                            break;
+                        case '?':
+                            e.preventDefault();
+                            showHotkeys();
+                            break;
+                        case 'F11':
+                            e.preventDefault();
+                            toggleFullscreen();
+                            break;
+                    }
                 }
                 
-                // Escape для выхода из полноэкранного режима
-                if (e.key === 'Escape' && document.fullscreenElement) {
-                    document.exitFullscreen();
+                // Escape для выхода из полноэкранного режима и закрытия модального окна
+                if (e.key === 'Escape') {
+                    if (document.getElementById('hotkeysModal').classList.contains('active')) {
+                        hideHotkeys();
+                        e.preventDefault();
+                    } else if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
                 }
             });
             
             // Обработка изменения размера окна
             window.addEventListener('resize', () => {
-                updateViewbox();
+                updateStateFromCanvas();
             });
             
             // Полноэкранный режим
             document.addEventListener('fullscreenchange', () => {
-                setTimeout(updateViewbox, 100);
+                setTimeout(updateStateFromCanvas, 100);
             });
+        }
+
+        function centerView() {
+            updateStateFromCanvas();
+            canvas.viewbox({
+                x: -viewbox.width / 2,
+                y: -viewbox.height / 2,
+                width: viewbox.width,
+                height: viewbox.height
+            });
+            updateStateFromCanvas();
         }
 
         function handlePinchZoom(event) {
@@ -610,12 +936,6 @@
             
             // Обновляем расстояние
             window.lastPinchDistance = currentDistance;
-        }
-
-        function updateViewbox() {
-            if (!canvas) return;
-            viewbox = canvas.viewbox();
-            currentZoom = canvas.zoom();
         }
 
         // === EASING FUNCTION для плавности ===
