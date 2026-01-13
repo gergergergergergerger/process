@@ -46,31 +46,30 @@
             width: 100%;
             height: 100%;
             transform-origin: 0 0;
-            transition: transform 0.08s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Панель управления - ПРАВЫЙ НИЖНИЙ УГОЛ как на скриншоте */
+        /* Панель управления - ПРАВЫЙ НИЖНИЙ УГОЛ */
         #controls {
             position: fixed;
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             background: rgba(255, 255, 255, 0.95);
-            padding: 8px;
-            border-radius: 12px;
+            padding: 6px;
+            border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 100;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(10px);
             min-width: auto;
-            max-width: none;
         }
 
         .control-btn {
-            width: 36px;
-            height: 36px;
+            width: 34px;
+            height: 34px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
             background: white;
@@ -79,7 +78,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
@@ -99,16 +98,16 @@
 
         #zoom-indicator {
             margin-left: 4px;
-            padding: 4px 8px;
-            font-size: 12px;
+            padding: 3px 6px;
+            font-size: 11px;
             color: #4a5568;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             gap: 4px;
             background: white;
-            min-width: 70px;
+            min-width: 55px;
         }
 
         #zoom-level {
@@ -288,13 +287,28 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Сетка */
+        .grid-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
+        }
+
         /* Адаптивность */
         @media (max-width: 640px) {
             #controls {
                 bottom: 12px;
                 right: 12px;
-                padding: 6px;
-                gap: 4px;
+                padding: 5px;
+                gap: 3px;
             }
             
             .control-btn {
@@ -304,9 +318,9 @@
             }
             
             #zoom-indicator {
-                padding: 3px 6px;
-                font-size: 11px;
-                min-width: 60px;
+                padding: 2px 5px;
+                font-size: 10px;
+                min-width: 50px;
             }
             
             .modal {
@@ -332,23 +346,8 @@
             }
             
             #zoom-indicator {
-                display: none; /* Скрываем индикатор на очень маленьких экранах */
+                display: none;
             }
-        }
-
-        /* Сетка */
-        .grid-pattern {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: 0.5;
         }
     </style>
 </head>
@@ -371,13 +370,14 @@
         <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">-</button>
         <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↻</button>
         <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
+        <button class="control-btn" onclick="showHotkeys()" title="Горячие клавиши (?)">?</button>
         
         <div id="zoom-indicator">
             <span id="zoom-level">100%</span>
         </div>
     </div>
 
-    <!-- Модальное окно с горячими клавишами (скрыто по умолчанию) -->
+    <!-- Модальное окно с горячими клавишами -->
     <div class="modal-overlay" id="hotkeysModal" onclick="hideHotkeys(event)">
         <div class="modal" onclick="event.stopPropagation()">
             <div class="modal-header">
@@ -481,13 +481,13 @@
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             
-            // НАСТРОЙКИ ДИНАМИЧНОГО МАСШТАБИРОВАНИЯ
+            // ЗОЛОТАЯ СЕРЕДИНА ДЛЯ МАСШТАБИРОВАНИЯ
             zoom: {
                 min: 0.02,      // 2%
                 max: 20,        // 2000%
-                step: 0.25,     // 25% за шаг кнопки (было 0.08) - БОЛЬШЕ!
-                wheelStep: 0.008, // Шаг колесика (было 0.0005) - БОЛЬШЕ!
-                animationDuration: 120, // Быстрее анимация (было 180)
+                step: 0.15,     // 15% за шаг кнопки - ИДЕАЛЬНО
+                wheelStep: 0.003, // Оптимальная чувствительность колесика
+                animationDuration: 140, // Идеальная скорость анимации
                 easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
             },
             
@@ -587,7 +587,7 @@
             updateZoomIndicator();
         }
 
-        // === ДИНАМИЧНОЕ МАСШТАБИРОВАНИЕ КОЛЁСИКОМ ===
+        // === ИДЕАЛЬНОЕ МАСШТАБИРОВАНИЕ КОЛЁСИКОМ ===
         function handleWheel(event) {
             event.preventDefault();
             
@@ -598,21 +598,21 @@
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
             
-            // Определяем направление с учетом скорости прокрутки
+            // Определяем направление с идеальной чувствительностью
             const delta = -event.deltaY * CONFIG.zoom.wheelStep;
             wheelAccumulator += delta;
             
-            // Немедленный зум без аккумуляции для динамичности
+            // Немедленный зум с небольшой аккумуляцией для плавности
             clearTimeout(wheelTimeout);
-            performInstantZoom(wheelAccumulator, mouseX, mouseY);
+            performSmoothZoom(wheelAccumulator, mouseX, mouseY);
             
-            // Сбрасываем аккумулятор быстро
+            // Сбрасываем аккумулятор через короткое время
             wheelTimeout = setTimeout(() => {
                 wheelAccumulator = 0;
-            }, 50);
+            }, 80);
         }
 
-        function performInstantZoom(zoomDelta, mouseX, mouseY) {
+        function performSmoothZoom(zoomDelta, mouseX, mouseY) {
             // Отменяем предыдущую анимацию
             if (zoomAnimation) {
                 cancelAnimationFrame(zoomAnimation);
@@ -625,8 +625,8 @@
             const diagramX = viewbox.x + (mouseX / currentZoom);
             const diagramY = viewbox.y + (mouseY / currentZoom);
             
-            // Вычисляем целевой масштаб с экспоненциальным ростом
-            const zoomFactor = Math.exp(zoomDelta * 1.5); // Увеличиваем коэффициент
+            // Вычисляем целевой масштаб с оптимальной скоростью
+            const zoomFactor = Math.exp(zoomDelta);
             let targetZoom = currentZoom * zoomFactor;
             
             // Ограничения
@@ -651,19 +651,19 @@
                 y: targetY
             };
             
-            // Запускаем быструю анимацию
+            // Запускаем плавную анимацию
             zoomStartTime = performance.now();
             animateZoom();
         }
 
-        // === БЫСТРАЯ АНИМАЦИЯ ЗУМА ===
+        // === ПЛАВНАЯ АНИМАЦИЯ ЗУМА ===
         function animateZoom() {
             const now = performance.now();
             const elapsed = now - zoomStartTime;
             const progress = Math.min(elapsed / CONFIG.zoom.animationDuration, 1);
             
-            // Easing функция для динамичности
-            const ease = easeOutQuad(progress);
+            // Easing функция для идеальной плавности
+            const ease = easeOutCubic(progress);
             
             // Интерполируем значения
             const currentZoomValue = zoomStartValues.zoom + 
@@ -794,9 +794,9 @@
             const rect = container.getBoundingClientRect();
             updateStateFromCanvas();
             
-            // Динамичное увеличение на 25%
+            // Увеличение на 15%
             const zoomFactor = 1 + CONFIG.zoom.step;
-            performInstantZoom(Math.log(zoomFactor), rect.width / 2, rect.height / 2);
+            performSmoothZoom(Math.log(zoomFactor), rect.width / 2, rect.height / 2);
         }
 
         function zoomOut() {
@@ -804,9 +804,9 @@
             const rect = container.getBoundingClientRect();
             updateStateFromCanvas();
             
-            // Динамичное уменьшение на 25%
+            // Уменьшение на 15%
             const zoomFactor = 1 - CONFIG.zoom.step;
-            performInstantZoom(Math.log(zoomFactor), rect.width / 2, rect.height / 2);
+            performSmoothZoom(Math.log(zoomFactor), rect.width / 2, rect.height / 2);
         }
 
         function resetView() {
@@ -896,7 +896,7 @@
             const targetX = diagramX - (mouseX / clampedZoom);
             const targetY = diagramY - (mouseY / clampedZoom);
             
-            // Применяем без анимации для максимальной отзывчивости
+            // Применяем с небольшой анимацией для плавности
             canvas.viewbox({
                 x: targetX,
                 y: targetY,
@@ -984,8 +984,8 @@
         }
 
         // === EASING FUNCTIONS ===
-        function easeOutQuad(t) {
-            return 1 - (1 - t) * (1 - t); // Более динамичная функция
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
         }
 
         // === ЗАПУСК ПРИЛОЖЕНИЯ ===
