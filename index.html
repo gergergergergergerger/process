@@ -3,298 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BPMN Viewer - Miro/Excalidraw Style</title>
+    <title>BPMN Viewer</title>
     
-    <!-- Библиотеки (2026 год) -->
+    <!-- Библиотеки -->
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/bpmn-js.css">
     <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/diagram-js.css">
     <script src="https://unpkg.com/bpmn-js@15.0.0/dist/bpmn-viewer.production.min.js"></script>
     
     <style>
-        /* === Miro/Excalidraw стиль === */
-        :root {
-            --miro-blue: #4262FF;
-            --miro-blue-light: #E9E9FF;
-            --miro-gray-50: #F5F5F5;
-            --miro-gray-100: #E6E6E6;
-            --miro-gray-200: #CCCCCC;
-            --miro-gray-800: #333333;
-            --miro-surface: #FFFFFF;
-            --miro-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1), 0px 8px 16px rgba(0, 0, 0, 0.08);
-            --miro-shadow-lg: 0px 4px 8px rgba(0, 0, 0, 0.12), 0px 16px 32px rgba(0, 0, 0, 0.1);
-            --radius-xl: 24px;
-            --radius-lg: 16px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
-            --transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
-            --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         html, body {
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
-            color: var(--miro-gray-800);
-            background: var(--miro-gray-50);
-            touch-action: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
 
-        /* Основной контейнер в стиле Miro */
-        #miro-container {
+        /* Контейнер схемы */
+        #canvas-container {
             width: 100%;
             height: 100%;
             position: relative;
-            background: 
-                linear-gradient(90deg, var(--miro-gray-100) 1px, transparent 1px) 0 0 / 40px 40px,
-                linear-gradient(var(--miro-gray-100) 1px, transparent 1px) 0 0 / 40px 40px;
-            overflow: hidden;
+            background: #f8fafc;
             cursor: grab;
+            touch-action: none;
+            overflow: hidden;
         }
 
-        #miro-container.dragging {
+        #canvas-container.dragging {
             cursor: grabbing;
             user-select: none;
         }
 
-        #miro-container.panning {
-            cursor: grab;
-        }
-
-        /* Canvas с трансформациями как в Excalidraw */
         #canvas {
             width: 100%;
             height: 100%;
             transform-origin: 0 0;
-            transition: transform var(--transition-fast);
-            will-change: transform;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
-        /* Floating Toolbar в стиле Miro */
-        .miro-toolbar {
+        /* Панель управления - как в оригинале */
+        #controls {
             position: fixed;
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--miro-surface);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--miro-shadow-lg);
-            padding: 8px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 14px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            z-index: 100;
             display: flex;
             align-items: center;
-            gap: 4px;
-            z-index: 100;
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            min-width: 320px;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            min-width: 300px;
             max-width: 400px;
         }
 
-        .toolbar-group {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 0 8px;
-            border-right: 1px solid var(--miro-gray-100);
-        }
-
-        .toolbar-group:last-child {
-            border-right: none;
-        }
-
-        .miro-button {
+        .control-btn {
             width: 40px;
             height: 40px;
-            border: none;
-            border-radius: var(--radius-md);
-            background: transparent;
-            color: var(--miro-gray-800);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            color: #4a5568;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            transition: all var(--transition-fast);
-            position: relative;
+            font-weight: 500;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .miro-button:hover {
-            background: var(--miro-gray-50);
+        .control-btn:hover {
+            border-color: #4299e1;
+            background: #ebf8ff;
+            color: #2b6cb0;
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2);
         }
 
-        .miro-button:active {
+        .control-btn:active {
             transform: translateY(0);
-            background: var(--miro-gray-100);
+            box-shadow: 0 2px 6px rgba(66, 153, 225, 0.2);
         }
 
-        .miro-button.active {
-            background: var(--miro-blue-light);
-            color: var(--miro-blue);
-        }
-
-        .miro-button::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 50%;
-            transform: translateX(-50%) translateY(-4px);
-            background: var(--miro-gray-800);
-            color: white;
+        #zoom-indicator {
+            margin-left: 12px;
             padding: 6px 12px;
-            border-radius: var(--radius-sm);
-            font-size: 12px;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: all var(--transition-fast);
-            z-index: 1000;
-        }
-
-        .miro-button::before {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-4px);
-            border: 4px solid transparent;
-            border-bottom-color: var(--miro-gray-800);
-            opacity: 0;
-            transition: all var(--transition-fast);
-        }
-
-        .miro-button:hover::after,
-        .miro-button:hover::before {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* Zoom controls в стиле Excalidraw */
-        .zoom-controls {
-            position: fixed;
-            right: 20px;
-            bottom: 20px;
-            background: var(--miro-surface);
-            border-radius: var(--radius-xl);
-            box-shadow: var(--miro-shadow);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            z-index: 100;
-            border: 1px solid var(--miro-gray-100);
-        }
-
-        .zoom-button {
-            width: 48px;
-            height: 48px;
-            border: none;
-            background: var(--miro-surface);
-            color: var(--miro-gray-800);
-            cursor: pointer;
+            font-size: 13px;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 300;
-            transition: all var(--transition-fast);
-            border-bottom: 1px solid var(--miro-gray-100);
+            gap: 6px;
+            background: white;
         }
 
-        .zoom-button:last-child {
-            border-bottom: none;
-        }
-
-        .zoom-button:hover {
-            background: var(--miro-gray-50);
-        }
-
-        .zoom-button:active {
-            background: var(--miro-gray-100);
-        }
-
-        .zoom-display {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: var(--miro-surface);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--miro-shadow);
-            padding: 12px 20px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--miro-gray-800);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 100;
-            min-width: 120px;
-        }
-
-        .zoom-percent {
+        #zoom-level {
             font-weight: 600;
-            color: var(--miro-blue);
+            color: #4299e1;
+            min-width: 40px;
+            text-align: center;
             font-feature-settings: "tnum";
             font-variant-numeric: tabular-nums;
         }
 
-        /* Floating hint как в Miro */
-        .miro-hint {
-            position: fixed;
-            top: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--miro-gray-800);
-            color: white;
-            padding: 12px 24px;
-            border-radius: var(--radius-lg);
-            font-size: 14px;
-            font-weight: 500;
-            z-index: 1000;
-            opacity: 0;
-            animation: miro-hint-fade 3s var(--transition-smooth);
-            box-shadow: var(--miro-shadow-lg);
-            text-align: center;
-            max-width: 400px;
-        }
-
-        @keyframes miro-hint-fade {
-            0%, 100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
-            10%, 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        /* Loading overlay */
+        /* Loading */
         .loading-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: var(--miro-surface);
+            background: rgba(248, 250, 252, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 24px;
+            gap: 16px;
             z-index: 1000;
-            transition: opacity var(--transition-smooth);
+            opacity: 1;
+            transition: opacity 0.3s ease;
         }
 
         .loading-spinner {
-            width: 48px;
-            height: 48px;
-            border: 3px solid var(--miro-gray-100);
-            border-top-color: var(--miro-blue);
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #4299e1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -303,13 +151,7 @@
             to { transform: rotate(360deg); }
         }
 
-        .loading-text {
-            font-size: 16px;
-            color: var(--miro-gray-800);
-            font-weight: 500;
-        }
-
-        /* Минималистичная сетка как в Excalidraw */
+        /* Сетка */
         .grid-pattern {
             position: absolute;
             top: 0;
@@ -318,102 +160,31 @@
             height: 100%;
             pointer-events: none;
             background-image: 
-                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-            background-size: 20px 20px;
-            opacity: 0;
-            transition: opacity var(--transition-fast);
-        }
-
-        .show-grid .grid-pattern {
-            opacity: 1;
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.5;
         }
 
         /* Адаптивность */
-        @media (max-width: 768px) {
-            .miro-toolbar {
-                top: 12px;
-                padding: 6px;
+        @media (max-width: 640px) {
+            #controls {
+                top: 15px;
+                padding: 8px 12px;
                 min-width: 280px;
-                gap: 2px;
+                gap: 6px;
             }
             
-            .miro-button {
+            .control-btn {
                 width: 36px;
                 height: 36px;
                 font-size: 16px;
             }
             
-            .zoom-controls {
-                right: 12px;
-                bottom: 12px;
+            #zoom-indicator {
+                font-size: 12px;
+                padding: 4px 10px;
             }
-            
-            .zoom-button {
-                width: 44px;
-                height: 44px;
-                font-size: 18px;
-            }
-            
-            .zoom-display {
-                bottom: 12px;
-                left: 12px;
-                padding: 10px 16px;
-                font-size: 13px;
-                min-width: 100px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .miro-toolbar {
-                top: 8px;
-                padding: 4px;
-                min-width: 250px;
-            }
-            
-            .toolbar-group {
-                padding: 0 4px;
-            }
-            
-            .miro-button {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
-            }
-            
-            .miro-button::after {
-                display: none; /* Скрываем подсказки на мобильных */
-            }
-        }
-
-        /* Selection rectangle как в Miro */
-        .selection-rect {
-            position: absolute;
-            border: 2px solid var(--miro-blue);
-            background: rgba(66, 98, 255, 0.1);
-            pointer-events: none;
-            z-index: 50;
-            display: none;
-        }
-
-        /* Smooth scrollbars */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--miro-gray-100);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--miro-gray-200);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--miro-gray-800);
         }
     </style>
 </head>
@@ -421,156 +192,80 @@
     <!-- Loading screen -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text" id="loadingText">Загрузка BPMN просмотрщика...</div>
+        <div id="loadingText">Загрузка схемы...</div>
     </div>
 
-    <!-- Основной контейнер в стиле Miro -->
-    <div id="miro-container">
+    <!-- Контейнер схемы -->
+    <div id="canvas-container">
         <div class="grid-pattern"></div>
         <div id="canvas"></div>
-        <div class="selection-rect" id="selectionRect"></div>
     </div>
 
-    <!-- Floating toolbar -->
-    <div class="miro-toolbar">
-        <div class="toolbar-group">
-            <button class="miro-button active" onclick="setTool('hand')" data-tooltip="Рука (Пробел)" id="toolHand">
-                ✋
-            </button>
-            <button class="miro-button" onclick="setTool('select')" data-tooltip="Выделение (V)" id="toolSelect">
-                ↘
-            </button>
-        </div>
+    <!-- Панель управления -->
+    <div id="controls">
+        <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">+</button>
+        <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">-</button>
+        <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↻</button>
+        <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
         
-        <div class="toolbar-group">
-            <button class="miro-button" onclick="zoomIn()" data-tooltip="Увеличить (Ctrl++)">
-                +
-            </button>
-            <button class="miro-button" onclick="zoomOut()" data-tooltip="Уменьшить (Ctrl+-)">
-                −
-            </button>
-            <button class="miro-button" onclick="resetView()" data-tooltip="Сбросить вид (0)">
-                ↺
-            </button>
-        </div>
-        
-        <div class="toolbar-group">
-            <button class="miro-button" onclick="toggleGrid()" data-tooltip="Сетка (G)" id="btnGrid">
-                #
-            </button>
-            <button class="miro-button" onclick="toggleFullscreen()" data-tooltip="Полный экран (F)">
-                ⛶
-            </button>
-            <button class="miro-button" onclick="centerView()" data-tooltip="Центрировать (C)">
-                ◎
-            </button>
+        <div id="zoom-indicator">
+            <span>Масштаб:</span>
+            <span id="zoom-level">100%</span>
         </div>
     </div>
-
-    <!-- Zoom controls -->
-    <div class="zoom-controls">
-        <button class="zoom-button" onclick="zoomIn()" title="Увеличить">+</button>
-        <button class="zoom-button" onclick="zoomOut()" title="Уменьшить">−</button>
-        <button class="zoom-button" onclick="resetView()" title="Сбросить вид">↺</button>
-    </div>
-
-    <!-- Zoom display -->
-    <div class="zoom-display">
-        <span>Масштаб:</span>
-        <span class="zoom-percent" id="zoomLevel">100%</span>
-    </div>
-
-    <!-- Hints -->
-    <div class="miro-hint" id="hint"></div>
 
     <script>
-        // === КОНФИГУРАЦИЯ В СТИЛЕ MIRO/EXCALIDRAW ===
+        // === КОНФИГУРАЦИЯ ===
         const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             
-            // Zoom как в Excalidraw
+            // Настройки плавного масштабирования
             zoom: {
-                min: 0.02,           // 2%
-                max: 20,             // 2000%
-                step: 0.1,           // 10% за шаг
-                wheelStep: 0.005,    // Чувствительность колесика
-                smoothness: 0.92,    // Плавность зума
-                snapSteps: [0.1, 0.25, 0.5, 0.75, 1, 1.5, 2, 3, 4, 5] // Snap точки
+                min: 0.02,      // 2%
+                max: 20,        // 2000%
+                step: 0.08,     // 8% за шаг (меньше = плавнее)
+                wheelSmoothness: 0.7, // 0-1, чем выше - тем плавнее
+                animationDuration: 180, // мс
+                easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' // easing как в Figma
             },
             
-            // Drag как в Miro
+            // Перетаскивание
             drag: {
-                sensitivity: 1.0,
-                inertia: 0.92,       // Инерция (выше = более гладко)
-                friction: 0.96,      // Трение
-                minVelocity: 0.01    // Минимальная скорость для инерции
-            },
-            
-            // Анимации
-            animation: {
-                duration: 200,
-                easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-            },
-            
-            // Флаги
-            features: {
-                smoothZoom: true,
-                inertialPan: true,
-                snapZoom: true,
-                showGrid: false
-            },
-            
-            // Текущий инструмент
-            tool: 'hand' // 'hand' | 'select'
+                sensitivity: 1.0
+            }
         };
 
         // === ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ===
         let viewer = null;
         let canvas = null;
         let currentZoom = 1;
-        let targetZoom = 1;
         let viewbox = { x: 0, y: 0, width: 0, height: 0 };
         
-        // Инструменты и состояние
+        // Состояние перетаскивания
         let isDragging = false;
-        let isPanning = false;
-        let isZooming = false;
-        let isSpacePressed = false;
+        let dragStart = { x: 0, y: 0 };
+        let viewboxStart = { x: 0, y: 0 };
         
-        // Инерция
-        let velocity = { x: 0, y: 0 };
-        let lastMousePos = { x: 0, y: 0 };
-        let lastTimestamp = 0;
-        
-        // Анимации
-        let zoomAnimationId = null;
-        let panAnimationId = null;
-        let inertiaAnimationId = null;
-        
-        // Масштабирование колесиком
-        let wheelTimeout = null;
-        let accumulatedWheelDelta = 0;
+        // Для плавного зума
+        let zoomAnimation = null;
+        let targetZoom = null;
+        let zoomStart = null;
+        let zoomTargetX = null;
+        let zoomTargetY = null;
+        let zoomStartTime = null;
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         async function init() {
             try {
-                updateLoadingText('Загрузка библиотек...');
-                
                 // Создаем viewer
                 viewer = new BpmnJS({
-                    container: '#canvas',
-                    keyboard: {
-                        bindTo: window,
-                        enabled: true
-                    }
+                    container: '#canvas'
                 });
                 
                 canvas = viewer.get('canvas');
                 
                 // Настраиваем события
                 setupEventListeners();
-                setupKeyboard();
-                setupViewport();
                 
                 // Загружаем схему
                 await loadDiagram();
@@ -583,21 +278,14 @@
                     }, 300);
                 }, 500);
                 
-                // Показываем подсказку
-                showHint('Используйте колесо мыши для масштабирования • Пробел для перетаскивания');
-                
-                console.log('🎯 BPMN Viewer готов в стиле Miro/Excalidraw');
-                
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
-                updateLoadingText('Ошибка загрузки: ' + error.message);
+                document.getElementById('loadingText').textContent = 'Ошибка загрузки: ' + error.message;
             }
         }
 
         // === ЗАГРУЗКА СХЕМЫ ===
         async function loadDiagram() {
-            updateLoadingText('Загрузка схемы...');
-            
             try {
                 const urlParams = new URLSearchParams(window.location.search);
                 let diagramUrl = urlParams.get('diagram') || CONFIG.defaultDiagram;
@@ -609,12 +297,9 @@
                         .replace('/blob/', '/');
                 }
                 
-                // Загружаем с кешированием
-                const response = await fetch(diagramUrl, {
-                    cache: 'force-cache',
-                    headers: { 'Pragma': 'no-cache' }
-                });
+                document.getElementById('loadingText').textContent = 'Загрузка схемы...';
                 
+                const response = await fetch(diagramUrl);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 
                 const xml = await response.text();
@@ -623,487 +308,280 @@
                 // Устанавливаем начальный вид
                 resetView();
                 
-                updateLoadingText('Схема загружена!');
+                document.getElementById('loadingText').textContent = 'Схема загружена!';
                 
             } catch (error) {
                 console.error('Ошибка загрузки схемы:', error);
-                updateLoadingText(`Ошибка: ${error.message}`);
                 throw error;
             }
         }
 
-        // === МАСШТАБИРОВАНИЕ КАК В EXCALIDRAW (ПЛАВНОЕ, ОТНОСИТЕЛЬНО КУРСОРА) ===
+        // === ПЛАВНОЕ МАСШТАБИРОВАНИЕ КОЛЁСИКОМ ===
         function handleWheel(event) {
             event.preventDefault();
             
-            const container = document.getElementById('miro-container');
+            const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
             
-            // Координаты курсора
+            // Координаты курсора относительно контейнера
             const mouseX = event.clientX - rect.left;
             const mouseY = event.clientY - rect.top;
             
-            // Определяем направление и силу
-            const delta = -event.deltaY * CONFIG.zoom.wheelStep;
-            accumulatedWheelDelta += delta;
+            // Определяем направление и силу зума
+            // Используем более плавное изменение через экспоненту
+            const delta = -event.deltaY * 0.0005; // Меньше = плавнее
             
-            // Мгновенный зум для быстрого отклика
-            if (!CONFIG.features.smoothZoom) {
-                performZoom(accumulatedWheelDelta, mouseX, mouseY);
-                accumulatedWheelDelta = 0;
-                return;
-            }
+            // Вычисляем коэффициент зума
+            const zoomFactor = Math.exp(delta * CONFIG.zoom.wheelSmoothness);
             
-            // Плавный зум с аккумуляцией
-            clearTimeout(wheelTimeout);
-            wheelTimeout = setTimeout(() => {
-                performSmoothZoom(accumulatedWheelDelta, mouseX, mouseY);
-                accumulatedWheelDelta = 0;
-            }, 50);
-            
-            // Небольшая предварительная анимация
-            performZoom(delta * 0.3, mouseX, mouseY);
+            // Вызываем плавный зум
+            smoothZoomToPoint(mouseX, mouseY, zoomFactor);
         }
 
-        function performZoom(zoomDelta, mouseX, mouseY) {
-            if (!canvas || isZooming) return;
+        // === ПЛАВНЫЙ ЗУМ К ТОЧКЕ (С АНИМАЦИЕЙ) ===
+        function smoothZoomToPoint(mouseX, mouseY, zoomFactor) {
+            // Отменяем предыдущую анимацию
+            if (zoomAnimation) {
+                cancelAnimationFrame(zoomAnimation);
+            }
             
-            // Текущая позиция в системе координат схемы
+            // Текущая позиция курсора в системе координат схемы
             const diagramX = viewbox.x + (mouseX / currentZoom);
             const diagramY = viewbox.y + (mouseY / currentZoom);
             
-            // Новый масштаб
-            const zoomFactor = Math.exp(zoomDelta);
+            // Вычисляем целевой масштаб
             let newZoom = currentZoom * zoomFactor;
             
-            // Snap to common zoom levels
-            if (CONFIG.features.snapZoom) {
-                newZoom = snapZoomLevel(newZoom);
-            }
-            
-            // Ограничения
+            // Ограничиваем мин/макс
             newZoom = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, newZoom));
             
-            // Новые координаты viewbox
+            // Если масштаб не изменился - выходим
+            if (Math.abs(newZoom - currentZoom) < 0.001) return;
+            
+            // Вычисляем новые координаты viewbox
             const newViewboxX = diagramX - (mouseX / newZoom);
             const newViewboxY = diagramY - (mouseY / newZoom);
             
-            // Применяем
-            applyZoom(newZoom, newViewboxX, newViewboxY);
+            // Запускаем плавную анимацию
+            animateZoom(currentZoom, newZoom, viewbox.x, newViewboxX, viewbox.y, newViewboxY);
         }
 
-        function performSmoothZoom(zoomDelta, mouseX, mouseY) {
-            if (!canvas || isZooming) return;
-            
-            isZooming = true;
-            
-            const startZoom = currentZoom;
-            const startX = viewbox.x;
-            const startY = viewbox.y;
-            
-            // Целевой зум
-            const zoomFactor = Math.exp(zoomDelta);
-            let targetZoom = currentZoom * zoomFactor;
-            
-            // Snap
-            if (CONFIG.features.snapZoom) {
-                targetZoom = snapZoomLevel(targetZoom);
-            }
-            
-            // Ограничения
-            targetZoom = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, targetZoom));
-            
-            // Целевые координаты
-            const diagramX = viewbox.x + (mouseX / currentZoom);
-            const diagramY = viewbox.y + (mouseY / currentZoom);
-            const targetX = diagramX - (mouseX / targetZoom);
-            const targetY = diagramY - (mouseY / targetZoom);
-            
-            // Анимация
-            let startTime = null;
+        // === АНИМАЦИЯ ПЛАВНОГО ЗУМА ===
+        function animateZoom(startZoom, endZoom, startX, endX, startY, endY) {
+            zoomStart = performance.now();
+            zoomStartTime = zoomStart;
+            targetZoom = endZoom;
+            zoomTargetX = endX;
+            zoomTargetY = endY;
             
             function animate(currentTime) {
-                if (!startTime) startTime = currentTime;
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / CONFIG.animation.duration, 1);
+                const elapsed = currentTime - zoomStartTime;
+                const progress = Math.min(elapsed / CONFIG.zoom.animationDuration, 1);
                 
-                // Easing
+                // Кривая плавности (easing function)
                 const ease = easeOutCubic(progress);
                 
-                // Интерполяция
-                const newZoom = startZoom + (targetZoom - startZoom) * ease;
-                const newX = startX + (targetX - startX) * ease;
-                const newY = startY + (targetY - startY) * ease;
+                // Интерполируем значения
+                const currentZoomValue = startZoom + (endZoom - startZoom) * ease;
+                const currentX = startX + (endX - startX) * ease;
+                const currentY = startY + (endY - startY) * ease;
                 
-                // Применяем
-                applyZoom(newZoom, newX, newY);
+                // Применяем к canvas
+                canvas.viewbox({
+                    x: currentX,
+                    y: currentY,
+                    width: viewbox.width,
+                    height: viewbox.height
+                });
+                canvas.zoom(currentZoomValue);
+                
+                // Обновляем глобальные переменные
+                currentZoom = currentZoomValue;
+                viewbox.x = currentX;
+                viewbox.y = currentY;
+                
+                // Обновляем индикатор
+                updateZoomIndicator();
                 
                 if (progress < 1) {
-                    zoomAnimationId = requestAnimationFrame(animate);
+                    zoomAnimation = requestAnimationFrame(animate);
                 } else {
-                    isZooming = false;
-                    zoomAnimationId = null;
+                    zoomAnimation = null;
                 }
             }
             
-            cancelAnimationFrame(zoomAnimationId);
-            zoomAnimationId = requestAnimationFrame(animate);
+            zoomAnimation = requestAnimationFrame(animate);
         }
 
-        function snapZoomLevel(zoom) {
-            const steps = CONFIG.zoom.snapSteps;
-            let closest = steps[0];
-            let minDiff = Math.abs(zoom - closest);
+        // === ПЕРЕТАСКИВАНИЕ ТОЛЬКО ЛКМ ===
+        function setupDragging() {
+            const container = document.getElementById('canvas-container');
             
-            for (const step of steps) {
-                const diff = Math.abs(zoom - step);
-                if (diff < minDiff) {
-                    minDiff = diff;
-                    closest = step;
-                }
-            }
-            
-            // Snap только если достаточно близко
-            return minDiff < 0.05 ? closest : zoom;
-        }
-
-        function applyZoom(zoom, x, y) {
-            canvas.viewbox({
-                x: x,
-                y: y,
-                width: viewbox.width,
-                height: viewbox.height
+            container.addEventListener('mousedown', (e) => {
+                // ТОЛЬКО левая кнопка мыши (button === 0)
+                if (e.button !== 0) return;
+                
+                isDragging = true;
+                dragStart.x = e.clientX;
+                dragStart.y = e.clientY;
+                viewboxStart.x = viewbox.x;
+                viewboxStart.y = viewbox.y;
+                
+                container.classList.add('dragging');
+                e.preventDefault();
             });
             
-            canvas.zoom(zoom);
-            
-            // Обновляем состояние
-            viewbox = canvas.viewbox();
-            currentZoom = zoom;
-            
-            // Обновляем UI
-            updateZoomIndicator();
-        }
-
-        // === ПЕРЕТАСКИВАНИЕ КАК В MIRO (ИНЕРЦИОННОЕ) ===
-        function startPan(event) {
-            if (event.button !== 0 && !isSpacePressed) return;
-            if (CONFIG.tool !== 'hand' && !isSpacePressed) return;
-            
-            isPanning = true;
-            isDragging = true;
-            
-            const container = document.getElementById('miro-container');
-            container.classList.add('dragging');
-            
-            lastMousePos = { x: event.clientX, y: event.clientY };
-            lastTimestamp = performance.now();
-            
-            // Останавливаем инерцию
-            cancelAnimationFrame(inertiaAnimationId);
-            velocity = { x: 0, y: 0 };
-            
-            event.preventDefault();
-        }
-
-        function doPan(event) {
-            if (!isPanning) return;
-            
-            const now = performance.now();
-            const deltaTime = now - lastTimestamp;
-            
-            if (deltaTime === 0) return;
-            
-            // Вычисляем смещение
-            const dx = (event.clientX - lastMousePos.x) / currentZoom;
-            const dy = (event.clientY - lastMousePos.y) / currentZoom;
-            
-            // Обновляем viewbox
-            viewbox.x -= dx * CONFIG.drag.sensitivity;
-            viewbox.y -= dy * CONFIG.drag.sensitivity;
-            
-            // Вычисляем скорость для инерции
-            velocity.x = dx / deltaTime;
-            velocity.y = dy / deltaTime;
-            
-            // Применяем
-            canvas.viewbox(viewbox);
-            
-            // Обновляем позицию
-            lastMousePos = { x: event.clientX, y: event.clientY };
-            lastTimestamp = now;
-            
-            event.preventDefault();
-        }
-
-        function endPan() {
-            if (!isPanning) return;
-            
-            isPanning = false;
-            isDragging = false;
-            
-            const container = document.getElementById('miro-container');
-            container.classList.remove('dragging');
-            
-            // Запускаем инерцию
-            if (CONFIG.features.inertialPan && (Math.abs(velocity.x) > 0.01 || Math.abs(velocity.y) > 0.01)) {
-                applyInertia();
-            }
-        }
-
-        function applyInertia() {
-            let lastTime = performance.now();
-            
-            function animate(currentTime) {
-                const deltaTime = currentTime - lastTime;
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
                 
-                // Уменьшаем скорость
-                velocity.x *= Math.pow(CONFIG.drag.friction, deltaTime / 16);
-                velocity.y *= Math.pow(CONFIG.drag.friction, deltaTime / 16);
+                // Вычисляем смещение
+                const dx = (e.clientX - dragStart.x) / currentZoom * CONFIG.drag.sensitivity;
+                const dy = (e.clientY - dragStart.y) / currentZoom * CONFIG.drag.sensitivity;
                 
-                // Если скорость слишком мала - останавливаем
-                if (Math.abs(velocity.x) < CONFIG.drag.minVelocity && 
-                    Math.abs(velocity.y) < CONFIG.drag.minVelocity) {
-                    velocity = { x: 0, y: 0 };
-                    return;
-                }
+                // Новые координаты viewbox
+                viewbox.x = viewboxStart.x - dx;
+                viewbox.y = viewboxStart.y - dy;
                 
-                // Применяем инерцию
-                viewbox.x -= velocity.x * deltaTime;
-                viewbox.y -= velocity.y * deltaTime;
-                
+                // Применяем изменения
                 canvas.viewbox(viewbox);
                 
-                lastTime = currentTime;
-                inertiaAnimationId = requestAnimationFrame(animate);
-            }
+                e.preventDefault();
+            });
             
-            inertiaAnimationId = requestAnimationFrame(animate);
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    container.classList.remove('dragging');
+                }
+            });
+            
+            // Отключаем контекстное меню на canvas
+            container.addEventListener('contextmenu', (e) => e.preventDefault());
         }
 
-        // === УПРАВЛЕНИЕ ===
+        // === ФУНКЦИИ УПРАВЛЕНИЯ ===
         function zoomIn() {
-            const container = document.getElementById('miro-container');
+            const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
-            performZoom(CONFIG.zoom.step, rect.width / 2, rect.height / 2);
+            smoothZoomToPoint(rect.width / 2, rect.height / 2, 1 + CONFIG.zoom.step);
         }
 
         function zoomOut() {
-            const container = document.getElementById('miro-container');
+            const container = document.getElementById('canvas-container');
             const rect = container.getBoundingClientRect();
-            performZoom(-CONFIG.zoom.step, rect.width / 2, rect.height / 2);
+            smoothZoomToPoint(rect.width / 2, rect.height / 2, 1 - CONFIG.zoom.step);
         }
 
         function resetView() {
-            canvas.zoom('fit-viewport', { padding: 60 });
+            // Используем встроенную функцию fit-viewport
+            canvas.zoom('fit-viewport', { padding: 40 });
+            
+            // Обновляем переменные
             currentZoom = canvas.zoom();
             viewbox = canvas.viewbox();
+            
+            // Обновляем индикатор
             updateZoomIndicator();
-            showHint('Вид сброшен');
-        }
-
-        function centerView() {
-            canvas.viewbox({
-                x: -viewbox.width / 2,
-                y: -viewbox.height / 2,
-                width: viewbox.width,
-                height: viewbox.height
-            });
-            viewbox = canvas.viewbox();
-            showHint('Схема центрирована');
         }
 
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                showHint('Полный экран включен');
             } else {
                 document.exitFullscreen();
-                showHint('Полный экран выключен');
             }
         }
 
-        function toggleGrid() {
-            CONFIG.features.showGrid = !CONFIG.features.showGrid;
-            const container = document.getElementById('miro-container');
-            container.classList.toggle('show-grid', CONFIG.features.showGrid);
-            
-            const btn = document.getElementById('btnGrid');
-            btn.classList.toggle('active', CONFIG.features.showGrid);
-            
-            showHint(CONFIG.features.showGrid ? 'Сетка включена' : 'Сетка выключена');
-        }
-
-        function setTool(tool) {
-            CONFIG.tool = tool;
-            
-            // Обновляем кнопки
-            document.getElementById('toolHand').classList.toggle('active', tool === 'hand');
-            document.getElementById('toolSelect').classList.toggle('active', tool === 'select');
-            
-            // Обновляем курсор
-            const container = document.getElementById('miro-container');
-            container.style.cursor = tool === 'hand' ? 'grab' : 'default';
-            
-            showHint(tool === 'hand' ? 'Инструмент: Рука' : 'Инструмент: Выделение');
-        }
-
         // === ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ===
+        function updateZoomIndicator() {
+            const zoomPercent = Math.round(currentZoom * 100);
+            document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
+        }
+
         function setupEventListeners() {
-            const container = document.getElementById('miro-container');
+            const container = document.getElementById('canvas-container');
             
-            // Колесико мыши
+            // Колесико мыши для плавного зума
             container.addEventListener('wheel', handleWheel, { passive: false });
             
-            // Перетаскивание
-            container.addEventListener('mousedown', startPan);
-            document.addEventListener('mousemove', doPan);
-            document.addEventListener('mouseup', endPan);
+            // Перетаскивание ЛКМ
+            setupDragging();
             
-            // Touch события для мобильных
+            // Touch события (для мобильных)
             container.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 1) {
-                    startPan({
+                    const touch = e.touches[0];
+                    container.dispatchEvent(new MouseEvent('mousedown', {
                         button: 0,
-                        clientX: e.touches[0].clientX,
-                        clientY: e.touches[0].clientY
-                    });
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    }));
+                    e.preventDefault();
                 } else if (e.touches.length === 2) {
-                    // Multi-touch для зума
-                    handleTouchZoom(e);
+                    handlePinchZoom(e);
                 }
-                e.preventDefault();
             }, { passive: false });
             
             container.addEventListener('touchmove', (e) => {
-                if (e.touches.length === 1 && isPanning) {
-                    doPan({
-                        clientX: e.touches[0].clientX,
-                        clientY: e.touches[0].clientY
-                    });
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    document.dispatchEvent(new MouseEvent('mousemove', {
+                        clientX: touch.clientX,
+                        clientY: touch.clientY
+                    }));
+                    e.preventDefault();
                 } else if (e.touches.length === 2) {
-                    handleTouchZoom(e);
+                    handlePinchZoom(e);
                 }
-                e.preventDefault();
             }, { passive: false });
             
             container.addEventListener('touchend', (e) => {
-                if (e.touches.length === 0) {
-                    endPan();
+                document.dispatchEvent(new MouseEvent('mouseup'));
+            });
+            
+            // Горячие клавиши
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + для увеличения
+                if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
+                    if (e.key === '+' || e.key === '=') {
+                        e.preventDefault();
+                        zoomIn();
+                    } else if (e.key === '-') {
+                        e.preventDefault();
+                        zoomOut();
+                    } else if (e.key === '0') {
+                        e.preventDefault();
+                        resetView();
+                    }
+                }
+                
+                // F11 для полноэкранного режима
+                if (e.key === 'F11') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+                
+                // Escape для выхода из полноэкранного режима
+                if (e.key === 'Escape' && document.fullscreenElement) {
+                    document.exitFullscreen();
                 }
             });
             
-            // Изменение размера окна
+            // Обработка изменения размера окна
             window.addEventListener('resize', () => {
-                setTimeout(updateViewport, 100);
+                updateViewbox();
             });
             
             // Полноэкранный режим
-            document.addEventListener('fullscreenchange', updateViewport);
-        }
-
-        function setupKeyboard() {
-            document.addEventListener('keydown', (e) => {
-                // Пробел для перетаскивания
-                if (e.code === 'Space' && !isSpacePressed) {
-                    isSpacePressed = true;
-                    document.getElementById('miro-container').classList.add('panning');
-                    e.preventDefault();
-                }
-                
-                // Горячие клавиши
-                if (e.ctrlKey || e.metaKey) {
-                    switch (e.key) {
-                        case '+':
-                        case '=':
-                            e.preventDefault();
-                            zoomIn();
-                            break;
-                        case '-':
-                            e.preventDefault();
-                            zoomOut();
-                            break;
-                        case '0':
-                            e.preventDefault();
-                            resetView();
-                            break;
-                    }
-                } else {
-                    switch (e.key) {
-                        case ' ':
-                            e.preventDefault();
-                            break;
-                        case 'g':
-                        case 'G':
-                            e.preventDefault();
-                            toggleGrid();
-                            break;
-                        case 'f':
-                        case 'F':
-                            e.preventDefault();
-                            toggleFullscreen();
-                            break;
-                        case 'c':
-                        case 'C':
-                            e.preventDefault();
-                            centerView();
-                            break;
-                        case 'v':
-                        case 'V':
-                            e.preventDefault();
-                            setTool('select');
-                            break;
-                        case 'h':
-                        case 'H':
-                            e.preventDefault();
-                            setTool('hand');
-                            break;
-                    }
-                }
-            });
-            
-            document.addEventListener('keyup', (e) => {
-                if (e.code === 'Space' && isSpacePressed) {
-                    isSpacePressed = false;
-                    document.getElementById('miro-container').classList.remove('panning');
-                    e.preventDefault();
-                }
+            document.addEventListener('fullscreenchange', () => {
+                setTimeout(updateViewbox, 100);
             });
         }
 
-        function setupViewport() {
-            updateViewbox();
-        }
-
-        function updateViewbox() {
-            if (!canvas) return;
-            viewbox = canvas.viewbox();
-            currentZoom = canvas.zoom();
-        }
-
-        function updateViewport() {
-            setTimeout(updateViewbox, 50);
-        }
-
-        function updateZoomIndicator() {
-            const zoomPercent = Math.round(currentZoom * 100);
-            document.getElementById('zoomLevel').textContent = `${zoomPercent}%`;
-        }
-
-        function updateLoadingText(text) {
-            document.getElementById('loadingText').textContent = text;
-        }
-
-        function showHint(message) {
-            const hint = document.getElementById('hint');
-            hint.textContent = message;
-            hint.style.animation = 'none';
-            void hint.offsetHeight; // Trigger reflow
-            hint.style.animation = 'miro-hint-fade 3s cubic-bezier(0.4, 0, 0.2, 1)';
-        }
-
-        function handleTouchZoom(event) {
+        function handlePinchZoom(event) {
             if (event.touches.length !== 2) return;
+            
+            event.preventDefault();
             
             const touch1 = event.touches[0];
             const touch2 = event.touches[1];
@@ -1113,58 +591,41 @@
             const centerY = (touch1.clientY + touch2.clientY) / 2;
             
             // Расстояние между пальцами
-            const distance = Math.sqrt(
+            const currentDistance = Math.sqrt(
                 Math.pow(touch2.clientX - touch1.clientX, 2) +
                 Math.pow(touch2.clientY - touch1.clientY, 2)
             );
             
-            // Если это первый touch
-            if (!window.lastTouchDistance) {
-                window.lastTouchDistance = distance;
+            // Сохраняем начальное расстояние при первом касании
+            if (!window.lastPinchDistance) {
+                window.lastPinchDistance = currentDistance;
                 return;
             }
             
-            // Вычисляем zoom delta
-            const zoomDelta = (distance - window.lastTouchDistance) * 0.01;
+            // Вычисляем изменение масштаба
+            const scaleChange = currentDistance / window.lastPinchDistance;
             
-            // Применяем зум
-            performZoom(zoomDelta, centerX, centerY);
+            // Применяем плавный зум
+            smoothZoomToPoint(centerX, centerY, scaleChange);
             
-            // Сохраняем расстояние
-            window.lastTouchDistance = distance;
-            
-            event.preventDefault();
+            // Обновляем расстояние
+            window.lastPinchDistance = currentDistance;
         }
 
-        // === МАТЕМАТИЧЕСКИЕ ФУНКЦИИ ===
+        function updateViewbox() {
+            if (!canvas) return;
+            viewbox = canvas.viewbox();
+            currentZoom = canvas.zoom();
+        }
+
+        // === EASING FUNCTION для плавности ===
         function easeOutCubic(t) {
             return 1 - Math.pow(1 - t, 3);
         }
 
-        // === ЗАПУСК ===
+        // === ЗАПУСК ПРИЛОЖЕНИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
-            // Проверяем поддержку
-            if (!('requestAnimationFrame' in window)) {
-                alert('Требуется современный браузер');
-                return;
-            }
-            
-            // Инициализируем
             init();
-            
-            // Предотвращаем контекстное меню
-            document.addEventListener('contextmenu', (e) => {
-                if (e.target.closest('#miro-container')) {
-                    e.preventDefault();
-                }
-            });
-        });
-
-        // Очистка при закрытии
-        window.addEventListener('beforeunload', () => {
-            cancelAnimationFrame(zoomAnimationId);
-            cancelAnimationFrame(panAnimationId);
-            cancelAnimationFrame(inertiaAnimationId);
         });
     </script>
 </body>
