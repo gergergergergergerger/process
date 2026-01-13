@@ -1,384 +1,726 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>BPMN Схема</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BPMN Viewer - Просмотрщик схем</title>
     
-    <!-- Подключение библиотеки bpmn-js -->
-    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@14/dist/assets/bpmn-js.css">
-    <script src="https://unpkg.com/bpmn-js@14/dist/bpmn-navigated-viewer.development.js"></script>
+    <!-- Библиотеки (версии 2026 года) -->
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/bpmn-js.css">
+    <link rel="stylesheet" href="https://unpkg.com/bpmn-js@15.0.0/dist/assets/diagram-js.css">
+    <script src="https://unpkg.com/bpmn-js@15.0.0/dist/bpmn-viewer.production.min.js"></script>
     
     <style>
         :root {
-            --primary-color: #3a86ff;
-            --surface-color: #ffffff;
-            --text-primary: #1a1a1a;
-            --text-secondary: #666666;
-            --border-color: #e0e0e0;
-            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-            --radius-md: 10px;
+            --primary: #4285f4;
+            --primary-dark: #3367d6;
+            --surface: #ffffff;
+            --surface-2: #f8f9fa;
+            --text: #202124;
+            --text-secondary: #5f6368;
+            --border: #dadce0;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         html, body {
-            height: 100%;
             width: 100%;
+            height: 100%;
             overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            touch-action: none;
+        }
+
+        /* Основной контейнер */
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Шапка */
+        .header {
+            padding: 16px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
         }
 
         /* Контейнер схемы */
-        #canvas-container {
-            width: 100%;
-            height: 100%;
+        .canvas-container {
+            flex: 1;
             position: relative;
-            background: var(--surface-color);
+            overflow: hidden;
+            background: var(--surface);
+            cursor: grab;
+            transition: background 0.3s ease;
+        }
+
+        .canvas-container.dragging {
+            cursor: grabbing;
+            user-select: none;
+        }
+
+        .canvas-container.loading {
+            background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+            background-size: 200% 200%;
+            animation: loading 1.5s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
 
         #canvas {
             width: 100%;
             height: 100%;
-            cursor: grab;
-        }
-
-        #canvas.grabbing {
-            cursor: grabbing;
+            transform-origin: 0 0;
+            transition: transform 0.15s ease-out;
         }
 
         /* Панель управления */
-        #controls {
+        .controls {
             position: fixed;
-            top: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: var(--surface-color);
-            padding: 10px 14px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
-            z-index: 100;
+            background: var(--surface);
+            padding: 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
             display: flex;
             align-items: center;
             gap: 8px;
-            border: 1px solid var(--border-color);
-            min-width: 300px;
-            max-width: 400px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .control-btn {
-            width: 40px;
-            height: 40px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: transparent;
+            width: 44px;
+            height: 44px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            color: var(--text);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            transition: all 0.2s ease;
+            font-size: 20px;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
         }
 
-        .control-btn:hover {
-            border-color: var(--primary-color);
-            background: rgba(58, 134, 255, 0.1);
-        }
-
-        .control-btn:active {
-            transform: scale(0.95);
-        }
-
-        #zoom-indicator {
-            margin-left: 12px;
-            padding: 6px 12px;
-            font-size: 13px;
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        #zoom-level {
-            font-weight: 600;
-            color: var(--primary-color);
-            min-width: 40px;
-            text-align: center;
-        }
-
-        /* Сообщения об ошибках */
-        .error-message {
+        .control-btn::after {
+            content: '';
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--surface-color);
-            padding: 30px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-md);
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease, opacity 0.2s ease;
+            border-radius: 50%;
+        }
+
+        .control-btn:hover {
+            border-color: var(--primary);
+            background: rgba(66, 133, 244, 0.04);
+            transform: translateY(-1px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn:hover::after {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.1;
+        }
+
+        .control-btn:active::after {
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0.2;
+        }
+
+        .zoom-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin: 0 8px;
+        }
+
+        .zoom-display {
+            min-width: 80px;
+            padding: 8px 12px;
+            background: var(--surface-2);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .zoom-percent {
+            font-weight: 600;
+            color: var(--primary);
+            min-width: 48px;
             text-align: center;
-            max-width: 400px;
-            border: 1px solid #ff6b6b;
         }
 
-        .error-message h3 {
-            color: #ff6b6b;
-            margin-bottom: 10px;
+        /* Статус загрузки */
+        .status-bar {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            background: var(--surface);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            font-size: 14px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 100;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: var(--transition);
         }
 
-        @media (max-width: 640px) {
-            #controls {
-                top: 15px;
-                padding: 8px 12px;
-                min-width: 280px;
-                gap: 6px;
+        .status-bar.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #34a853;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Сетка для ориентации */
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background-image: 
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .canvas-container.show-grid .grid-overlay {
+            opacity: 1;
+        }
+
+        /* Подсказки */
+        .hint {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-align: center;
+            z-index: 90;
+            opacity: 0;
+            animation: fadeInOut 4s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+            20%, 80% { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+            }
+            
+            .controls {
+                bottom: 16px;
+                padding: 8px;
+            }
+            
+            .control-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+            
+            .zoom-display {
+                min-width: 70px;
+                padding: 6px 10px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .controls {
+                gap: 4px;
+            }
+            
+            .zoom-controls {
+                margin: 0 4px;
             }
             
             .control-btn {
                 width: 36px;
                 height: 36px;
-                font-size: 16px;
             }
             
-            #zoom-indicator {
-                font-size: 12px;
-                padding: 4px 10px;
+            .hint {
+                width: 90%;
+                bottom: 80px;
+                font-size: 13px;
             }
         }
     </style>
 </head>
 <body>
-    <div id="canvas-container">
-        <div id="canvas"></div>
-        
-        <div id="controls">
-            <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">+</button>
-            <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">-</button>
-            <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↻</button>
-            <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
-            
-            <div id="zoom-indicator">
-                <span>Масштаб:</span>
-                <span id="zoom-level">100%</span>
+    <div id="app">
+        <!-- Шапка -->
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">BPMN</div>
+                <span>Просмотрщик схем</span>
+            </div>
+            <div class="status-bar" id="statusBar">
+                <div class="status-dot"></div>
+                <span id="statusText">Загрузка...</span>
             </div>
         </div>
+
+        <!-- Основной контейнер схемы -->
+        <div class="canvas-container" id="canvasContainer">
+            <div class="grid-overlay"></div>
+            <div id="canvas"></div>
+        </div>
+
+        <!-- Панель управления -->
+        <div class="controls">
+            <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl - / Колесо вниз)">−</button>
+            
+            <div class="zoom-controls">
+                <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl + / Колесо вверх)">+</button>
+                
+                <div class="zoom-display">
+                    <span>Масштаб:</span>
+                    <span class="zoom-percent" id="zoomLevel">100%</span>
+                </div>
+                
+                <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↺</button>
+            </div>
+            
+            <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
+            <button class="control-btn" onclick="toggleGrid()" title="Показать сетку (G)">#</button>
+            <button class="control-btn" onclick="centerView()" title="Центрировать (C)">◎</button>
+        </div>
+
+        <!-- Подсказки -->
+        <div class="hint" id="hint"></div>
     </div>
 
     <script>
-        // ===== КОНФИГУРАЦИЯ =====
-                const CONFIG = {
+        // ===== КОНФИГУРАЦИЯ (2026 год) =====
+        const CONFIG = {
             defaultDiagram: '1zayavka.bpmn',
             zoom: {
-                min: 0.05,
-                max: 20,
-                step: 0.2,
-                wheelSensitivity: 0.1  // Увеличено для большей чувствительности
+                min: 0.02,     // 2%
+                max: 20,       // 2000%
+                step: 0.15,    // 15% за шаг
+                smoothness: 0.9, // Плавность анимации (0-1)
+                wheelMultiplier: 0.001 // Множитель колесика
             },
-            padding: 40,
-            dragSensitivity: 0.8  // Оптимальная чувствительность перетаскивания
+            drag: {
+                sensitivity: 1.2,
+                inertia: 0.85  // Инерция при перетаскивании
+            },
+            animation: {
+                duration: 250, // мс
+                easing: 'cubic-bezier(0.4, 0, 0.2, 1)'
+            },
+            features: {
+                showGrid: false,
+                smoothScroll: true,
+                inertialScroll: true
+            }
         };
 
         // ===== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ =====
         let viewer = null;
+        let canvas = null;
         let currentZoom = 1;
+        let viewbox = { x: 0, y: 0, width: 0, height: 0 };
         let isDragging = false;
-        let lastMouseX = 0;
-        let lastMouseY = 0;
-
-        // ===== ПРОВЕРКА ЗАГРУЗКИ БИБЛИОТЕКИ =====
-        function isBpmnJsLoaded() {
-            if (typeof BpmnJS === 'undefined') {
-                showError('Библиотека bpmn-js не загружена. Проверьте подключение к интернету.');
-                return false;
-            }
-            return true;
-        }
-
-        function showError(message) {
-            const canvas = document.getElementById('canvas');
-            canvas.innerHTML = `
-                <div class="error-message">
-                    <h3>Ошибка</h3>
-                    <p>${message}</p>
-                    <p>Обновите страницу или проверьте консоль (F12).</p>
-                </div>
-            `;
-        }
+        let dragStart = { x: 0, y: 0 };
+        let velocity = { x: 0, y: 0 };
+        let lastTimestamp = 0;
+        let animationFrame = null;
 
         // ===== ИНИЦИАЛИЗАЦИЯ =====
-        function initViewer() {
-            if (!isBpmnJsLoaded()) return false;
+        async function initialize() {
+            showStatus('Инициализация...', 'loading');
             
             try {
-                viewer = new BpmnJS({ 
-                    container: '#canvas'
+                // Создаем просмотрщик
+                viewer = new BpmnJS({
+                    container: '#canvas',
+                    keyboard: { bindTo: document },
+                    additionalModules: []
                 });
-                return true;
+                
+                canvas = viewer.get('canvas');
+                
+                // Настраиваем события
+                setupEventListeners();
+                setupViewboxObserver();
+                
+                // Загружаем схему из URL или по умолчанию
+                await loadDiagram();
+                
+                showStatus('Готово', 'success');
+                showHint('Используйте колесо мыши для масштабирования');
+                
             } catch (error) {
-                showError(`Ошибка инициализации: ${error.message}`);
-                return false;
+                showStatus('Ошибка загрузки', 'error');
+                console.error('Ошибка инициализации:', error);
             }
         }
 
-                // ===== МАСШТАБИРОВАНИЕ КОЛЁСИКОМ (ИСПРАВЛЕННАЯ) =====
-        function handleWheel(e) {
-            e.preventDefault();
-            
-            // 1. ПОЛУЧАЕМ ТЕКУЩИЙ ВИД
-            const canvas = viewer.get('canvas');
-            const currentViewbox = canvas.viewbox(); // {x, y, width, height}
-            
-            // 2. ГДЕ КУРСОР НА СХЕМЕ? (в пикселях схемы)
-            // Это точка, которую мы хотим оставить под курсором после зума
-            const cursorXInDiagram = currentViewbox.x + (e.clientX / currentZoom);
-            const cursorYInDiagram = currentViewbox.y + (e.clientY / currentZoom);
-            
-            // 3. НА СКОЛЬКО МЕНЯЕМ МАСШТАБ
-            // Берем фиксированный шаг, а не умножаем на deltaY
-            const zoomStep = 0.15; // 15% за шаг
-            
-            // Определяем направление
-            let zoomMultiplier;
-            if (e.deltaY < 0) {
-                // Колесико ВВЕРХ (от себя) - УВЕЛИЧЕНИЕ
-                zoomMultiplier = 1 + zoomStep;
-            } else {
-                // Колесико ВНИЗ (к себе) - УМЕНЬШЕНИЕ
-                zoomMultiplier = 1 - zoomStep;
-            }
-            
-            // 4. ВЫЧИСЛЯЕМ НОВЫЙ МАСШТАБ
-            const newZoom = currentZoom * zoomMultiplier;
-            
-            // Ограничиваем мин/макс
-            const clampedZoom = Math.max(CONFIG.zoom.min, 
-                                        Math.min(CONFIG.zoom.max, newZoom));
-            
-            // 5. ВЫЧИСЛЯЕМ НОВОЕ СМЕЩЕНИЕ (чтобы курсор остался на той же точке схемы)
-            const newViewboxX = cursorXInDiagram - (e.clientX / clampedZoom);
-            const newViewboxY = cursorYInDiagram - (e.clientY / clampedZoom);
-            
-            // 6. ПРИМЕНЯЕМ ИЗМЕНЕНИЯ
-            canvas.viewbox({
-                x: newViewboxX,
-                y: newViewboxY,
-                width: currentViewbox.width,
-                height: currentViewbox.height
-            });
-            
-            // Обновляем масштаб отдельно
-            canvas.zoom(clampedZoom);
-            
-            // 7. ОБНОВЛЯЕМ ГЛОБАЛЬНУЮ ПЕРЕМЕННУЮ
-            currentZoom = clampedZoom;
-            
-            // 8. ОБНОВЛЯЕМ ИНДИКАТОР
-            updateZoomIndicator();
-            
-            console.log('Зум:', {
-                старое: currentZoom / zoomMultiplier,
-                новое: currentZoom,
-                изменение: `${zoomStep > 0 ? '+' : ''}${(zoomStep * 100).toFixed(0)}%`
-            });
-        }
-
-        // ===== ПЕРЕТАСКИВАНИЕ (ИСПРАВЛЕНО - правильное направление) =====
-        function setupDragging() {
-            const canvas = document.getElementById('canvas');
-            let isDragging = false;
-            let lastX = 0;
-            let lastY = 0;
-            
-            canvas.addEventListener('mousedown', (e) => {
-                if (e.button === 0) {
-                    isDragging = true;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                    canvas.classList.add('grabbing');
-                    e.preventDefault();
+        // ===== ЗАГРУЗКА СХЕМЫ =====
+        async function loadDiagram() {
+            try {
+                showStatus('Загрузка схемы...', 'loading');
+                
+                // Получаем имя файла из URL
+                const urlParams = new URLSearchParams(window.location.search);
+                let diagramUrl = urlParams.get('diagram') || CONFIG.defaultDiagram;
+                
+                // Поддержка ссылок на GitHub raw
+                if (diagramUrl.includes('github.com')) {
+                    diagramUrl = diagramUrl
+                        .replace('github.com', 'raw.githubusercontent.com')
+                        .replace('/blob/', '/');
                 }
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
                 
-                const dx = e.clientX - lastX;
-                const dy = e.clientY - lastY;
-                
-                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: УБРАН МИНУС - теперь перетаскивание в правильную сторону
-                viewer.get('canvas').scroll({ 
-                    dx: dx * CONFIG.dragSensitivity,  // Без минуса!
-                    dy: dy * CONFIG.dragSensitivity   // Без минуса!
+                // Загружаем XML
+                const response = await fetch(diagramUrl, {
+                    headers: { 'Cache-Control': 'no-cache' }
                 });
                 
-                lastX = e.clientX;
-                lastY = e.clientY;
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-                canvas.classList.remove('grabbing');
-            });
-            
-            canvas.addEventListener('dragstart', (e) => e.preventDefault());
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const xml = await response.text();
+                
+                // Импортируем в просмотрщик
+                await viewer.importXML(xml);
+                
+                // Устанавливаем начальный вид
+                setTimeout(() => {
+                    resetView();
+                    updateViewbox();
+                }, 100);
+                
+            } catch (error) {
+                console.error('Ошибка загрузки схемы:', error);
+                showStatus(`Ошибка: ${error.message}`, 'error');
+                throw error;
+            }
         }
 
-        // ===== УПРАВЛЕНИЕ МАСШТАБОМ (КНОПКИ) =====
-        function zoomIn() {
-            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            zoomAtPoint(CONFIG.zoom.step, canvasRect.width / 2, canvasRect.height / 2);
-        }
-        
-        function zoomOut() {
-            const canvasRect = document.getElementById('canvas').getBoundingClientRect();
-            zoomAtPoint(-CONFIG.zoom.step, canvasRect.width / 2, canvasRect.height / 2);
-        }
-        
-        function zoomAtPoint(zoomDelta, clientX, clientY) {
-            const canvas = viewer.get('canvas');
-            const viewbox = canvas.viewbox();
+        // ===== МАСШТАБИРОВАНИЕ ОТНОСИТЕЛЬНО КУРСОРА (Google Maps-style) =====
+        function handleWheel(event) {
+            event.preventDefault();
             
-            const cursorXInDiagram = viewbox.x + (clientX / currentZoom);
-            const cursorYInDiagram = viewbox.y + (clientY / currentZoom);
+            const container = document.getElementById('canvasContainer');
+            const rect = container.getBoundingClientRect();
+            
+            // Координаты курсора относительно контейнера
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+            
+            // Координаты курсора в системе схемы
+            const diagramX = viewbox.x + (mouseX / currentZoom);
+            const diagramY = viewbox.y + (mouseY / currentZoom);
+            
+            // Определяем направление и силу зума
+            const delta = event.deltaY || event.deltaX || event.detail;
+            const zoomDirection = delta > 0 ? -1 : 1;
+            
+            // Вычисляем коэффициент зума с учетом скорости прокрутки
+            const zoomFactor = 1 + (zoomDirection * CONFIG.zoom.step * 
+                (event.deltaMode === 0 ? CONFIG.zoom.wheelMultiplier : 0.1));
+            
+            // Новый масштаб
+            let newZoom = currentZoom * zoomFactor;
+            newZoom = Math.max(CONFIG.zoom.min, Math.min(CONFIG.zoom.max, newZoom));
+            
+            // Вычисляем новые координаты viewbox
+            const newViewboxX = diagramX - (mouseX / newZoom);
+            const newViewboxY = diagramY - (mouseY / newZoom);
+            
+            // Плавный переход к новому виду
+            smoothZoomTo(newZoom, newViewboxX, newViewboxY);
+        }
+
+        // ===== ПЛАВНЫЙ ЗУМ С АНИМАЦИЕЙ =====
+        function smoothZoomTo(targetZoom, targetX, targetY) {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
+            
+            const startZoom = currentZoom;
+            const startX = viewbox.x;
+            const startY = viewbox.y;
+            const startTime = performance.now();
+            
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / CONFIG.animation.duration, 1);
+                
+                // Кривая плавности
+                const ease = CONFIG.features.smoothScroll ? 
+                    easeOutCubic(progress) : progress;
+                
+                // Интерполируем значения
+                currentZoom = startZoom + (targetZoom - startZoom) * ease;
+                viewbox.x = startX + (targetX - startX) * ease;
+                viewbox.y = startY + (targetY - startY) * ease;
+                
+                // Применяем к канвасу
+                canvas.viewbox({
+                    x: viewbox.x,
+                    y: viewbox.y,
+                    width: viewbox.width,
+                    height: viewbox.height
+                });
+                canvas.zoom(currentZoom);
+                
+                // Обновляем UI
+                updateZoomIndicator();
+                updateViewbox();
+                
+                if (progress < 1) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    animationFrame = null;
+                }
+            }
+            
+            animationFrame = requestAnimationFrame(animate);
+        }
+
+        // ===== ПЕРЕТАСКИВАНИЕ С ИНЕРЦИЕЙ =====
+        function startDrag(event) {
+            if (event.button !== 0) return; // Только левая кнопка
+            
+            isDragging = true;
+            const container = document.getElementById('canvasContainer');
+            container.classList.add('dragging');
+            
+            dragStart = { x: event.clientX, y: event.clientY };
+            velocity = { x: 0, y: 0 };
+            lastTimestamp = performance.now();
+            
+            event.preventDefault();
+        }
+
+        function doDrag(event) {
+            if (!isDragging) return;
+            
+            const now = performance.now();
+            const deltaTime = now - lastTimestamp;
+            
+            // Вычисляем смещение
+            const dx = (event.clientX - dragStart.x) / currentZoom * CONFIG.drag.sensitivity;
+            const dy = (event.clientY - dragStart.y) / currentZoom * CONFIG.drag.sensitivity;
+            
+            // Обновляем viewbox
+            viewbox.x -= dx;
+            viewbox.y -= dy;
+            
+            // Вычисляем скорость для инерции
+            if (deltaTime > 0) {
+                velocity.x = dx / deltaTime;
+                velocity.y = dy / deltaTime;
+            }
+            
+            // Применяем изменения
+            canvas.viewbox({
+                x: viewbox.x,
+                y: viewbox.y,
+                width: viewbox.width,
+                height: viewbox.height
+            });
+            
+            // Обновляем стартовую позицию
+            dragStart = { x: event.clientX, y: event.clientY };
+            lastTimestamp = now;
+            
+            event.preventDefault();
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            
+            isDragging = false;
+            document.getElementById('canvasContainer').classList.remove('dragging');
+            
+            // Применяем инерцию, если включено
+            if (CONFIG.features.inertialScroll && (velocity.x !== 0 || velocity.y !== 0)) {
+                applyInertia();
+            }
+        }
+
+        function applyInertia() {
+            let lastTime = performance.now();
+            
+            function animateInertia(currentTime) {
+                const deltaTime = currentTime - lastTime;
+                
+                // Уменьшаем скорость с каждым кадром
+                velocity.x *= Math.pow(CONFIG.drag.inertia, deltaTime / 16);
+                velocity.y *= Math.pow(CONFIG.drag.inertia, deltaTime / 16);
+                
+                // Если скорость слишком мала - останавливаем
+                if (Math.abs(velocity.x) < 0.01 && Math.abs(velocity.y) < 0.01) {
+                    return;
+                }
+                
+                // Применяем инерцию к viewbox
+                viewbox.x -= velocity.x * deltaTime;
+                viewbox.y -= velocity.y * deltaTime;
+                
+                canvas.viewbox({
+                    x: viewbox.x,
+                    y: viewbox.y,
+                    width: viewbox.width,
+                    height: viewbox.height
+                });
+                
+                lastTime = currentTime;
+                requestAnimationFrame(animateInertia);
+            }
+            
+            requestAnimationFrame(animateInertia);
+        }
+
+        // ===== УПРАВЛЕНИЕ =====
+        function zoomIn() {
+            zoomAtPoint(CONFIG.zoom.step, 
+                window.innerWidth / 2, 
+                window.innerHeight / 2);
+        }
+
+        function zoomOut() {
+            zoomAtPoint(-CONFIG.zoom.step, 
+                window.innerWidth / 2, 
+                window.innerHeight / 2);
+        }
+
+        function zoomAtPoint(zoomDelta, clientX, clientY) {
+            const container = document.getElementById('canvasContainer');
+            const rect = container.getBoundingClientRect();
+            
+            const mouseX = clientX - rect.left;
+            const mouseY = clientY - rect.top;
+            
+            const diagramX = viewbox.x + (mouseX / currentZoom);
+            const diagramY = viewbox.y + (mouseY / currentZoom);
             
             const targetZoom = currentZoom * (1 + zoomDelta);
             const newZoom = Math.max(CONFIG.zoom.min, 
                 Math.min(CONFIG.zoom.max, targetZoom));
             
-            const newViewboxX = cursorXInDiagram - (clientX / newZoom);
-            const newViewboxY = cursorYInDiagram - (clientY / newZoom);
+            const newViewboxX = diagramX - (mouseX / newZoom);
+            const newViewboxY = diagramY - (mouseY / newZoom);
             
-            canvas.zoom(newZoom, { 
-                x: cursorXInDiagram, 
-                y: cursorYInDiagram 
-            });
-            
+            smoothZoomTo(newZoom, newViewboxX, newViewboxY);
+        }
+
+        function resetView() {
+            canvas.zoom('fit-viewport', { padding: 50 });
+            currentZoom = canvas.zoom();
+            viewbox = canvas.viewbox();
+            updateZoomIndicator();
+        }
+
+        function centerView() {
             canvas.viewbox({
-                x: newViewboxX,
-                y: newViewboxY,
+                x: -viewbox.width / 4,
+                y: -viewbox.height / 4,
                 width: viewbox.width,
                 height: viewbox.height
             });
-            
-            currentZoom = newZoom;
-            updateZoomIndicator();
+            updateViewbox();
         }
-        
-        function resetView() {
-            viewer.get('canvas').zoom('fit-viewport', { 
-                padding: CONFIG.padding 
-            });
-            currentZoom = viewer.get('canvas').zoom();
-            updateZoomIndicator();
-        }
-        
+
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
@@ -387,53 +729,55 @@
             }
         }
 
-        // ===== ЗАГРУЗКА СХЕМЫ =====
-        async function loadDiagram() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const diagramFileName = urlParams.get('diagram') || CONFIG.defaultDiagram;
+        function toggleGrid() {
+            CONFIG.features.showGrid = !CONFIG.features.showGrid;
+            const container = document.getElementById('canvasContainer');
+            container.classList.toggle('show-grid', CONFIG.features.showGrid);
             
-            try {
-                const response = await fetch(diagramFileName);
-                if (!response.ok) {
-                    throw new Error(`Файл "${diagramFileName}" не найден (ошибка ${response.status})`);
-                }
-                
-                const xml = await response.text();
-                await viewer.importXML(xml);
-                
-                // Начальная настройка вида
-                setTimeout(resetView, 100);
-                
-            } catch (error) {
-                console.error('Ошибка загрузки схемы:', error);
-                showError(`Не удалось загрузить схему: ${error.message}<br>Файл: ${diagramFileName}`);
-            }
+            showHint(CONFIG.features.showGrid ? 
+                'Сетка включена' : 'Сетка выключена');
         }
 
         // ===== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ =====
-        function updateZoomIndicator() {
-            const zoomPercent = Math.round(currentZoom * 100);
-            document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
-        }
-
         function setupEventListeners() {
-            const canvas = document.getElementById('canvas');
+            const container = document.getElementById('canvasContainer');
             
             // Колесико мыши
-            canvas.addEventListener('wheel', handleWheel, { passive: false });
+            container.addEventListener('wheel', handleWheel, { passive: false });
             
             // Перетаскивание
-            setupDragging();
+            container.addEventListener('mousedown', startDrag);
+            document.addEventListener('mousemove', doDrag);
+            document.addEventListener('mouseup', endDrag);
             
-            // Полноэкранный режим
-            document.addEventListener('fullscreenchange', () => {
-                // Корректируем viewport после изменения размера
-                setTimeout(resetView, 50);
-            });
+            // Касания (для мобильных)
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    startDrag({ 
+                        button: 0, 
+                        clientX: e.touches[0].clientX, 
+                        clientY: e.touches[0].clientY 
+                    });
+                }
+                e.preventDefault();
+            }, { passive: false });
+            
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    doDrag({ 
+                        clientX: e.touches[0].clientX, 
+                        clientY: e.touches[0].clientY 
+                    });
+                }
+                e.preventDefault();
+            }, { passive: false });
+            
+            container.addEventListener('touchend', endDrag);
             
             // Горячие клавиши
             document.addEventListener('keydown', (e) => {
-                if (e.ctrlKey || e.metaKey) {
+                // Ctrl/Cmd + колесо
+                if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey) {
                     if (e.key === '+' || e.key === '=') {
                         e.preventDefault();
                         zoomIn();
@@ -443,41 +787,121 @@
                     }
                 }
                 
-                if (e.key === '0') {
-                    e.preventDefault();
-                    resetView();
+                // Одиночные клавиши
+                if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+                    switch (e.key) {
+                        case '0':
+                            e.preventDefault();
+                            resetView();
+                            break;
+                        case 'g':
+                        case 'G':
+                            e.preventDefault();
+                            toggleGrid();
+                            break;
+                        case 'c':
+                        case 'C':
+                            e.preventDefault();
+                            centerView();
+                            break;
+                        case 'f':
+                        case 'F':
+                            if (e.key === 'f' || e.key === 'F') {
+                                e.preventDefault();
+                                toggleFullscreen();
+                            }
+                            break;
+                    }
                 }
-                
-                if (e.key === 'F11') {
-                    e.preventDefault();
-                    toggleFullscreen();
-                }
+            });
+            
+            // Изменение размера окна
+            window.addEventListener('resize', () => {
+                updateViewbox();
+            });
+            
+            // Полноэкранный режим
+            document.addEventListener('fullscreenchange', () => {
+                setTimeout(updateViewbox, 100);
             });
         }
 
+        function setupViewboxObserver() {
+            // Обновляем viewbox при изменениях
+            const originalViewbox = canvas.viewbox;
+            canvas.viewbox = function(...args) {
+                const result = originalViewbox.apply(this, args);
+                if (args.length === 0) {
+                    return result;
+                }
+                updateViewbox();
+                return result;
+            };
+        }
+
+        function updateViewbox() {
+            if (!canvas) return;
+            viewbox = canvas.viewbox();
+            currentZoom = canvas.zoom();
+        }
+
+        function updateZoomIndicator() {
+            const zoomPercent = Math.round(currentZoom * 100);
+            document.getElementById('zoomLevel').textContent = `${zoomPercent}%`;
+        }
+
+        function showStatus(message, type = 'info') {
+            const statusBar = document.getElementById('statusBar');
+            const statusText = document.getElementById('statusText');
+            
+            statusText.textContent = message;
+            statusBar.classList.add('show');
+            
+            const dot = statusBar.querySelector('.status-dot');
+            dot.style.background = type === 'success' ? '#34a853' :
+                                 type === 'error' ? '#ea4335' :
+                                 type === 'loading' ? '#4285f4' :
+                                 '#5f6368';
+            
+            if (type !== 'loading') {
+                setTimeout(() => {
+                    statusBar.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function showHint(message) {
+            const hint = document.getElementById('hint');
+            hint.textContent = message;
+            hint.style.animation = 'none';
+            void hint.offsetHeight; // Рефлоу
+            hint.style.animation = 'fadeInOut 4s ease-in-out';
+        }
+
+        // ===== МАТЕМАТИЧЕСКИЕ ФУНКЦИИ =====
+        function easeOutCubic(t) {
+            return 1 - Math.pow(1 - t, 3);
+        }
+
         // ===== ЗАПУСК ПРИЛОЖЕНИЯ =====
-        async function startApplication() {
-            // Ждем загрузки библиотеки
-            if (!isBpmnJsLoaded()) {
-                // Проверяем снова через секунду
-                setTimeout(startApplication, 1000);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Проверяем поддержку всех функций
+            if (!('requestAnimationFrame' in window)) {
+                alert('Ваш браузер устарел. Пожалуйста, обновите его.');
                 return;
             }
             
-            // Инициализируем просмотрщик
-            if (!initViewer()) return;
-            
-            // Настраиваем обработчики событий
-            setupEventListeners();
-            
-            // Загружаем схему
-            await loadDiagram();
-            
-            console.log('BPMN просмотрщик успешно загружен');
-        }
+            // Инициализируем приложение
+            initialize();
+        });
 
-        // Запускаем при загрузке страницы
-        document.addEventListener('DOMContentLoaded', startApplication);
+        // Защита от случайного закрытия
+        window.addEventListener('beforeunload', (e) => {
+            if (isDragging) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
     </script>
 </body>
 </html>
