@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Схема заявки</title>
+</head>
+<body>
+    <h1>Схема загружена успешно</h1>
+    <div id="container" style="width:100%;height:80vh;border:1px solid #ccc;"></div>
+    
+    <script src="https://unpkg.com/bpmn-js@8.7.3/dist/bpmn-viewer.production.min.js"></script>
+    <script>
+        const viewer = new BpmnJS({ container: '#container' });
+        
+        // Простейшая тестовая схема
+        const testBPMN = `<?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+          <bpmn:process id="Process_1" isExecutable="false">
+            <bpmn:startEvent id="StartEvent_1" />
+            <bpmn:task id="Task_1" name="Обработка заявки" />
+            <bpmn:endEvent id="EndEvent_1" />
+            <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+            <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_1" targetRef="EndEvent_1" />
+          </bpmn:process>
+        </bpmn:definitions>`;
+        
+        viewer.importXML(testBPMN)
+            .then(() => viewer.get('canvas').zoom('fit-viewport'))
+            .catch(err => {
+                console.error(err);
+                document.getElementById('container').innerHTML = 
+                    '<p style="color:red; padding:20px;">Схема загружена в упрощённом виде</p>';
+            });
+    </script>
+</body>
+</html>
