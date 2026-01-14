@@ -270,6 +270,32 @@
     </style>
 </head>
 <body>
+      <!-- Кнопки переключения схем -->
+  <div style="position:fixed; top:15px; left:15px; background:white; padding:10px; border-radius:8px; z-index:1000; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+    <button onclick="loadDiagram('1zayavka.bpmn')" style="margin:5px; padding:8px 15px; border:1px solid #ccc; border-radius:5px; background:#f0f0f0; cursor:pointer;">Схема 1</button>
+    <button onclick="loadDiagram('2KP.bpmn')" style="margin:5px; padding:8px 15px; border:1px solid #ccc; border-radius:5px; background:#f0f0f0; cursor:pointer;">Схема 2</button>
+  </div>
+
+  <script>
+  // Функция переключения схем
+  async function loadDiagram(fileName) {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    try {
+      const response = await fetch(fileName);
+      const xml = await response.text();
+      await viewer.importXML(xml);
+      resetView();
+    } catch (error) {
+      console.error('Ошибка:', error);
+      alert('Не удалось загрузить ' + fileName);
+    }
+    document.getElementById('loadingOverlay').style.display = 'none';
+  }
+  </script>
+</body>
+</html>
+
+
     <!-- Loading screen -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
