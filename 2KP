@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Схема 2KP</title>
+</head>
+<body>
+    <h1>Схема 2KP</h1>
+    <div id="container" style="width:100%;height:80vh;border:1px solid #ccc;"></div>
+    
+    <script src="https://unpkg.com/bpmn-js@8.7.3/dist/bpmn-viewer.production.min.js"></script>
+    <script>
+        const viewer = new BpmnJS({ container: '#container' });
+        
+        // Простейшая схема для 2KP
+        const testBPMN = `<?xml version="1.0" encoding="UTF-8"?>
+        <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL">
+          <bpmn:process id="Process_2KP" isExecutable="false">
+            <bpmn:startEvent id="StartEvent_2KP" />
+            <bpmn:task id="Task_Review" name="Проверка" />
+            <bpmn:task id="Task_Approve" name="Утверждение" />
+            <bpmn:endEvent id="EndEvent_2KP" />
+            <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_2KP" targetRef="Task_Review" />
+            <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Review" targetRef="Task_Approve" />
+            <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Approve" targetRef="EndEvent_2KP" />
+          </bpmn:process>
+        </bpmn:definitions>`;
+        
+        viewer.importXML(testBPMN)
+            .then(() => viewer.get('canvas').zoom('fit-viewport'))
+            .catch(err => {
+                console.error(err);
+                document.getElementById('container').innerHTML = 
+                    '<p style="color:red; padding:20px;">Схема 2KP в упрощённом виде</p>';
+            });
+    </script>
+</body>
+</html>
