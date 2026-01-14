@@ -229,6 +229,41 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Кнопки переключения схем - ЛЕВЫЙ ВЕРХНИЙ УГОЛ */
+        #schema-buttons {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            gap: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .schema-btn {
+            padding: 8px 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #f8fafc;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .schema-btn:hover {
+            background: #4299e1;
+            color: white;
+            border-color: #4299e1;
+            transform: translateY(-1px);
+        }
+
         /* Адаптивность */
         @media (max-width: 640px) {
             #controls {
@@ -249,6 +284,17 @@
                 font-size: 10px;
                 min-width: 50px;
             }
+
+            #schema-buttons {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+            }
+            
+            .schema-btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -266,35 +312,20 @@
             #zoom-indicator {
                 display: none;
             }
+
+            #schema-buttons {
+                flex-direction: column;
+                gap: 3px;
+            }
         }
     </style>
 </head>
 <body>
-      <!-- Кнопки переключения схем -->
-  <div style="position:fixed; top:15px; left:15px; background:white; padding:10px; border-radius:8px; z-index:1000; box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-    <button onclick="loadDiagram('1zayavka.bpmn')" style="margin:5px; padding:8px 15px; border:1px solid #ccc; border-radius:5px; background:#f0f0f0; cursor:pointer;">Схема 1</button>
-    <button onclick="loadDiagram('2KP.bpmn')" style="margin:5px; padding:8px 15px; border:1px solid #ccc; border-radius:5px; background:#f0f0f0; cursor:pointer;">Схема 2</button>
-  </div>
-
-  <script>
-  // Функция переключения схем
-  async function loadDiagram(fileName) {
-    document.getElementById('loadingOverlay').style.display = 'flex';
-    try {
-      const response = await fetch(fileName);
-      const xml = await response.text();
-      await viewer.importXML(xml);
-      resetView();
-    } catch (error) {
-      console.error('Ошибка:', error);
-      alert('Не удалось загрузить ' + fileName);
-    }
-    document.getElementById('loadingOverlay').style.display = 'none';
-  }
-  </script>
-</body>
-</html>
-
+    <!-- Кнопки переключения схем - ЛЕВЫЙ ВЕРХНИЙ УГОЛ -->
+    <div id="schema-buttons">
+        <button class="schema-btn" onclick="window.loadDiagram('1zayavka.bpmn')">Схема 1</button>
+        <button class="schema-btn" onclick="window.loadDiagram('2KP.bpmn')">Схема 2</button>
+    </div>
 
     <!-- Loading screen -->
     <div class="loading-overlay" id="loadingOverlay">
@@ -936,6 +967,42 @@
         function easeOutCubic(t) {
             return 1 - Math.pow(1 - t, 3);
         }
+
+        // ========== ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ СХЕМ ==========
+        window.loadDiagram = async function(fileName) {
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const loadingText = document.getElementById('loadingText');
+            
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = 'Загрузка схемы...';
+            
+            try {
+                const response = await fetch(fileName);
+                if (!response.ok) throw new Error(`Ошибка ${response.status}`);
+                const xml = await response.text();
+                
+                // Пересоздаем viewer
+                const canvas = document.getElementById('canvas');
+                canvas.innerHTML = '';
+                viewer = new BpmnJS({ container: '#canvas' });
+                
+                await viewer.importXML(xml);
+                resetView();
+                
+                loadingText.textContent = 'Схема загружена!';
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Ошибка:', error);
+                loadingText.textContent = 'Ошибка: ' + error.message;
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                }, 2000);
+                alert('Не удалось загрузить ' + fileName);
+            }
+        };
 
         // === ЗАПУСК ПРИЛОЖЕНИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
