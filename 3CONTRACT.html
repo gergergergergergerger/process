@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/bpmn-js@8.7.3/dist/bpmn-viewer.production.min.js"></script>
+    <style>html, body, #canvas { width: 100%; height: 100%; margin: 0; }</style>
+</head>
+<body>
+    <div id="canvas"></div>
+    <script>
+    fetch('3CONTRACT.bpmn')
+    .then(r => r.text())
+    .then(xml => {
+    new BpmnJS({container: '#canvas'}).importXML(xml)
+    .then(v => v.get('canvas')).zoom('fit-viewport'));
+    });
+    </script>
+</body>
+</html>
