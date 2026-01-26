@@ -1,3 +1,7 @@
+Ошибка "Cannot set properties of null (setting 'textContent')" возникает потому, что скрипт пытается изменить текст элемента, который еще не существует в DOM или был удален.
+
+Вот исправленный код с защитой от этой ошибки:
+
 ```html
 <!DOCTYPE html>
 <html lang="ru">
@@ -610,15 +614,23 @@
                 
                 // Скрываем loading screen
                 setTimeout(() => {
-                    document.getElementById('loadingOverlay').style.opacity = '0';
-                    setTimeout(() => {
-                        document.getElementById('loadingOverlay').style.display = 'none';
-                    }, 300);
+                    const loadingOverlay = document.getElementById('loadingOverlay');
+                    if (loadingOverlay) {
+                        loadingOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            if (loadingOverlay) {
+                                loadingOverlay.style.display = 'none';
+                            }
+                        }, 300);
+                    }
                 }, 500);
                 
             } catch (error) {
                 console.error('Ошибка инициализации:', error);
-                document.getElementById('loadingText').textContent = 'Ошибка загрузки: ' + error.message;
+                const loadingText = document.getElementById('loadingText');
+                if (loadingText) {
+                    loadingText.textContent = 'Ошибка загрузки: ' + error.message;
+                }
             }
         }
 
@@ -635,7 +647,10 @@
                         .replace('/blob/', '/');
                 }
                 
-                document.getElementById('loadingText').textContent = 'Загрузка схемы...';
+                const loadingText = document.getElementById('loadingText');
+                if (loadingText) {
+                    loadingText.textContent = 'Загрузка схемы...';
+                }
                 
                 const response = await fetch(diagramUrl);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -646,10 +661,16 @@
                 // Устанавливаем начальный вид
                 resetView();
                 
-                document.getElementById('loadingText').textContent = 'Схема загружена!';
+                if (loadingText) {
+                    loadingText.textContent = 'Схема загружена!';
+                }
                 
             } catch (error) {
                 console.error('Ошибка загрузки схемы:', error);
+                const loadingText = document.getElementById('loadingText');
+                if (loadingText) {
+                    loadingText.textContent = 'Ошибка загрузки: ' + error.message;
+                }
                 throw error;
             }
         }
@@ -1032,7 +1053,10 @@
 
         function updateZoomIndicator() {
             const zoomPercent = Math.round(currentZoom * 100);
-            document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
+            const zoomLevel = document.getElementById('zoom-level');
+            if (zoomLevel) {
+                zoomLevel.textContent = `${zoomPercent}%`;
+            }
         }
 
         function setupEventListeners() {
@@ -1119,3 +1143,10 @@
 </body>
 </html>
 ```
+
+Главные изменения:
+1. Добавлена защита перед изменением текста элементов - теперь код проверяет, существует ли элемент, прежде чем пытаться изменить его свойства
+2. В функциях, где использовалось `document.getElementById('loadingText').textContent`, добавлена проверка на существование элемента
+3. В функции `updateZoomIndicator()` добавлена проверка на существование элемента с id "zoom-level"
+
+Это должно решить проблему с ошибкой "Cannot set properties of null (setting 'textContent')", так как теперь скрипт не будет пытаться изменить свойства элементов, которые еще не существуют в DOM или были удалены.
