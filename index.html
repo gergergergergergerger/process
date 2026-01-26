@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -56,7 +57,7 @@
             right: 15px;
             background: rgba(255, 255, 255, 0.95);
             padding: 6px;
-            border-radius: 16px;
+            border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 100;
             display: flex;
@@ -119,92 +120,62 @@
             flex: 1;
         }
 
-        /* НОВАЯ ПАНЕЛЬ УПРАВЛЕНИЯ 3x3 В СТИЛЕ MIRO */
+        /* Панель управления 3x3 (всегда видимая) */
         #navigation-panel {
             position: fixed;
             bottom: 80px;
             right: 15px;
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 16px;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+            padding: 4px;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
             z-index: 100;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            overflow: hidden;
-            transform: translateY(20px);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #navigation-panel.active {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .nav-grid {
             display: grid;
-            grid-template-columns: repeat(3, 42px);
-            grid-template-rows: repeat(3, 42px);
-            gap: 1px;
-            background: #f1f5f9;
+            grid-template-columns: repeat(3, 34px);
+            grid-template-rows: repeat(3, 34px);
+            gap: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
         }
 
         .nav-btn {
-            width: 42px;
-            height: 42px;
+            width: 34px;
+            height: 34px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
             background: white;
-            border: none;
-            border-radius: 0;
+            color: #4a5568;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px; /* Чуть крупнее иконки */
-            color: #4a5568;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            font-size: 16px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .nav-btn:hover {
+            border-color: #4299e1;
             background: #ebf8ff;
             color: #2b6cb0;
-            transform: scale(1.05);
-            z-index: 2;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.2);
         }
 
         .nav-btn:active {
-            transform: scale(0.95);
-            background: #bfdbfe;
-        }
-
-        .nav-btn::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(66, 153, 225, 0.1), transparent);
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .nav-btn:hover::after {
-            opacity: 1;
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(66, 153, 225, 0.2);
         }
 
         .nav-center {
             background: #4299e1;
             color: white;
             font-weight: 600;
-            font-size: 20px; /* Еще крупнее для центральной кнопки */
+            border-color: #4299e1;
         }
 
         .nav-center:hover {
             background: #3182ce;
-            transform: scale(1.1);
-        }
-
-        .nav-center::after {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+            border-color: #3182ce;
         }
 
         .nav-fullscreen {
@@ -213,43 +184,6 @@
 
         .nav-fullscreen:hover {
             color: #2b6cb0;
-        }
-
-        .nav-zoom-icon {
-            font-size: 20px; /* Крупная иконка масштаба */
-        }
-
-        /* Кнопка показа панели управления */
-        #toggle-nav-panel {
-            position: fixed;
-            bottom: 15px;
-            right: 15px;
-            width: 42px;
-            height: 42px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #4a5568;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            z-index: 101;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        #toggle-nav-panel:hover {
-            background: #ebf8ff;
-            color: #2b6cb0;
-            transform: scale(1.1) rotate(90deg);
-            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.3);
-        }
-
-        #toggle-nav-panel.active {
-            transform: scale(1.1) rotate(180deg);
-            background: #bfdbfe;
         }
 
         /* Модальное окно с горячими клавишами в стиле Miro */
@@ -277,11 +211,10 @@
 
         .modal {
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
+            max-width: 400px;
             overflow: hidden;
             transform: translateY(20px);
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -292,70 +225,65 @@
         }
 
         .modal-header {
-            padding: 16px 20px;
-            border-bottom: 1px solid #e2e8f0;
+            padding: 12px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: linear-gradient(135deg, #f0f9ff 0%, #e6f7ff 100%);
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .modal-header h3 {
-            font-size: 18px;
-            font-weight: 700;
-            color: #1a365d;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .modal-header h3 i {
             color: #4299e1;
-            font-size: 20px;
+            font-size: 18px;
         }
 
         .modal-close {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             border: none;
-            background: #bfdbfe;
-            color: #1e40af;
+            background: #f1f5f9;
+            color: #4a5568;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
+            font-size: 16px;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .modal-close:hover {
-            background: #93c5fd;
-            transform: rotate(90deg);
+            background: #e2e8f0;
+            color: #2d3748;
         }
 
         .modal-content {
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
-            max-height: 60vh;
         }
 
         .hotkey-group {
-            margin-bottom: 16px;
-            border-radius: 12px;
-            background: #f8fafc;
-            padding: 12px;
-            border: 1px solid #edf2f7;
+            margin-bottom: 12px;
         }
 
         .hotkey-group h4 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            color: #2d3748;
+            color: #4a5568;
             margin-bottom: 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         .hotkey-item {
@@ -381,23 +309,26 @@
         }
 
         .key {
-            background: #e2e8f0;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
-            padding: 2px 8px;
+            padding: 2px 6px;
             font-size: 11px;
             font-weight: 500;
             color: #2d3748;
-            min-width: 24px;
+            min-width: 20px;
             text-align: center;
         }
 
         .key.combo {
-            background: #bfdbfe;
-            color: #1e40af;
+            background: #ebf8ff;
+            border-color: #4299e1;
+            color: #2b6cb0;
         }
 
         .key.highlight {
             background: #fef3c7;
+            border-color: #f59e0b;
             color: #92400e;
             font-weight: 600;
         }
@@ -434,68 +365,22 @@
         }
 
         /* Адаптивность */
-        @media (max-width: 640px) {
-            #navigation-panel {
-                bottom: 70px;
-            }
-            
-            .nav-grid {
-                grid-template-columns: repeat(3, 38px);
-                grid-template-rows: repeat(3, 38px);
-            }
-            
-            .nav-btn {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-            }
-            
-            .nav-center {
-                font-size: 18px;
-            }
-            
-            .nav-zoom-icon {
-                font-size: 18px;
-            }
-            
-            #toggle-nav-panel {
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-            }
-        }
-
         @media (max-width: 480px) {
-            #navigation-panel {
-                bottom: 60px;
-                right: 10px;
-            }
-            
-            .nav-grid {
-                grid-template-columns: repeat(3, 34px);
-                grid-template-rows: repeat(3, 34px);
-            }
-            
-            .nav-btn {
-                width: 34px;
-                height: 34px;
-                font-size: 14px;
-                padding: 2px;
-            }
-            
-            .nav-center {
-                font-size: 16px;
-            }
-            
-            #toggle-nav-panel {
-                width: 36px;
-                height: 36px;
-                font-size: 15px;
-                right: 10px;
-            }
-            
             #controls {
                 display: none;
+            }
+            
+            #navigation-panel {
+                bottom: 10px;
+                right: 10px;
+                padding: 3px;
+                gap: 3px;
+            }
+            
+            .nav-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
             }
         }
     </style>
@@ -512,61 +397,41 @@
         <div id="canvas"></div>
     </div>
 
-    <!-- СТАРАЯ ПАНЕЛЬ УПРАВЛЕНИЯ (ОСТАВЛЕНА ДЛЯ СОВМЕСТИМОСТИ) -->
-    <div id="controls">
-        <button class="control-btn" onclick="zoomIn()" title="Увеличить (Ctrl +)">+</button>
-        <button class="control-btn" onclick="zoomOut()" title="Уменьшить (Ctrl -)">-</button>
-        <button class="control-btn" onclick="resetView()" title="Сбросить вид (0)">↻</button>
-        <button class="control-btn" onclick="toggleFullscreen()" title="Полный экран (F11)">⛶</button>
-        <button class="control-btn" onclick="showHotkeys()" title="Горячие клавиши (?)">?</button>
-        
-        <div id="zoom-indicator">
-            <span id="zoom-level">100%</span>
-        </div>
-    </div>
-
-    <!-- НОВАЯ ПАНЕЛЬ УПРАВЛЕНИЯ 3x3 -->
+    <!-- Панель управления 3x3 (всегда видимая) -->
     <div id="navigation-panel">
-        <div class="nav-grid">
-            <!-- 1 столбец -->
-            <button class="nav-btn nav-fullscreen" onclick="toggleFullscreen()" title="Полный экран (F11)">
-                <i>⛶</i>
-            </button>
-            <button class="nav-btn" onclick="moveView(0, -100)" title="Вверх (↑)">
-                <i>↑</i>
-            </button>
-            <button class="nav-btn" onclick="zoomIn()" title="Увеличить (+)">
-                <i>+</i>
-            </button>
-            
-            <!-- 2 столбец -->
-            <button class="nav-btn" onclick="moveView(-100, 0)" title="Влево (←)">
-                <i>←</i>
-            </button>
-            <button class="nav-btn nav-center" onclick="resetView()" title="Обновить вид (0)">
-                <i>↻</i>
-            </button>
-            <button class="nav-btn" onclick="moveView(100, 0)" title="Вправо (→)">
-                <i>→</i>
-            </button>
-            
-            <!-- 3 столбец -->
-            <button class="nav-btn" onclick="showZoomOptions()" title="Масштаб">
-                <i class="nav-zoom-icon">🔍</i>
-            </button>
-            <button class="nav-btn" onclick="moveView(0, 100)" title="Вниз (↓)">
-                <i>↓</i>
-            </button>
-            <button class="nav-btn" onclick="zoomOut()" title="Уменьшить (-)">
-                <i>-</i>
-            </button>
-        </div>
+        <!-- 1 столбец -->
+        <button class="nav-btn nav-fullscreen" onclick="toggleFullscreen()" title="Полный экран (F11)">
+            ⛶
+        </button>
+        <button class="nav-btn" onclick="moveView(0, -100)" title="Вверх (↑)">
+            ↑
+        </button>
+        <button class="nav-btn" onclick="zoomIn()" title="Увеличить (+)">
+            +
+        </button>
+        
+        <!-- 2 столбец -->
+        <button class="nav-btn" onclick="moveView(-100, 0)" title="Влево (←)">
+            ←
+        </button>
+        <button class="nav-btn nav-center" onclick="resetView()" title="Сбросить вид (0)">
+            ↻
+        </button>
+        <button class="nav-btn" onclick="moveView(100, 0)" title="Вправо (→)">
+            →
+        </button>
+        
+        <!-- 3 столбец -->
+        <button class="nav-btn" onclick="showZoomOptions()" title="Масштаб">
+            🔍
+        </button>
+        <button class="nav-btn" onclick="moveView(0, 100)" title="Вниз (↓)">
+            ↓
+        </button>
+        <button class="nav-btn" onclick="zoomOut()" title="Уменьшить (-)">
+            -
+        </button>
     </div>
-
-    <!-- КНОПКА ПОКАЗА ПАНЕЛИ УПРАВЛЕНИЯ -->
-    <button id="toggle-nav-panel" onclick="toggleNavigationPanel()" title="Показать управление">
-        <i>≡</i>
-    </button>
 
     <!-- Модальное окно с горячими клавишами в стиле Miro -->
     <div class="modal-overlay" id="hotkeysModal" onclick="hideHotkeys(event)">
@@ -577,7 +442,7 @@
             </div>
             <div class="modal-content">
                 <div class="hotkey-group">
-                    <h4>🎯 Навигация по схеме</h4>
+                    <h4><i>↑</i> Навигация</h4>
                     <div class="hotkey-item">
                         <span>Перемещение вверх</span>
                         <div class="hotkey-keys">
@@ -605,14 +470,12 @@
                 </div>
                 
                 <div class="hotkey-group">
-                    <h4>🔍 Масштабирование</h4>
+                    <h4><i>🔍</i> Масштабирование</h4>
                     <div class="hotkey-item">
                         <span>Увеличить</span>
                         <div class="hotkey-keys">
                             <span class="key combo">Ctrl</span>
                             <span class="key">+</span>
-                            <span class="key">или</span>
-                            <span class="key combo">Колесо вверх</span>
                         </div>
                     </div>
                     <div class="hotkey-item">
@@ -620,8 +483,6 @@
                         <div class="hotkey-keys">
                             <span class="key combo">Ctrl</span>
                             <span class="key">-</span>
-                            <span class="key">или</span>
-                            <span class="key combo">Колесо вниз</span>
                         </div>
                     </div>
                     <div class="hotkey-item">
@@ -633,17 +494,11 @@
                 </div>
                 
                 <div class="hotkey-group">
-                    <h4>🖥️ Интерфейс</h4>
+                    <h4><i>🖥️</i> Интерфейс</h4>
                     <div class="hotkey-item">
                         <span>Полноэкранный режим</span>
                         <div class="hotkey-keys">
                             <span class="key highlight">F11</span>
-                        </div>
-                    </div>
-                    <div class="hotkey-item">
-                        <span>Показать/скрыть панель</span>
-                        <div class="hotkey-keys">
-                            <span class="key highlight">Tab</span>
                         </div>
                     </div>
                     <div class="hotkey-item">
@@ -655,7 +510,7 @@
                 </div>
                 
                 <div class="hotkey-group">
-                    <h4>📱 Мобильные жесты</h4>
+                    <h4><i>📱</i> Мобильные жесты</h4>
                     <div class="hotkey-item">
                         <span>Движение по схеме</span>
                         <div class="hotkey-keys">
@@ -668,17 +523,6 @@
                             <span class="key">Два пальца</span>
                         </div>
                     </div>
-                    <div class="hotkey-item">
-                        <span>Двойной тап для полного экрана</span>
-                        <div class="hotkey-keys">
-                            <span class="key">Двойной клик</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #e2e8f0; color: #718096; font-size: 12px;">
-                    <p>Совет: Используйте горячие клавиши для быстрой навигации по схеме</p>
-                    <p style="margin-top: 4px; font-weight: 500; color: #4299e1;">Сделано с ❤️ в стиле Miro</p>
                 </div>
             </div>
         </div>
@@ -736,9 +580,6 @@
         let isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         let lastTapTime = 0;
         let tapCount = 0;
-        
-        // Состояние панели навигации
-        let isNavPanelOpen = false;
 
         // === ИНИЦИАЛИЗАЦИЯ ===
         async function init() {
@@ -1156,45 +997,19 @@
         }
 
         function toggleFullscreen() {
-            const fullscreenBtn = document.querySelector('.nav-fullscreen i');
+            const fullscreenBtn = document.querySelector('.nav-fullscreen');
             
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(e => {
                     console.log("Fullscreen request failed:", e);
                 });
-                if (fullscreenBtn) {
-                    fullscreenBtn.textContent = '×';
-                }
             } else {
                 document.exitFullscreen();
-                if (fullscreenBtn) {
-                    fullscreenBtn.textContent = '⛶';
-                }
             }
         }
 
         function showZoomOptions() {
             alert('Опции масштабирования:\n- Колесо мыши\n- Ctrl + / Ctrl -\n- Кнопки +/- на панели');
-        }
-
-        // === УПРАВЛЕНИЕ ПАНЕЛЬЮ НАВИГАЦИИ ===
-        function toggleNavigationPanel() {
-            const panel = document.getElementById('navigation-panel');
-            const toggleBtn = document.getElementById('toggle-nav-panel');
-            
-            isNavPanelOpen = !isNavPanelOpen;
-            
-            if (isNavPanelOpen) {
-                panel.classList.add('active');
-                toggleBtn.classList.add('active');
-                toggleBtn.innerHTML = '<i>×</i>';
-                toggleBtn.title = 'Скрыть управление';
-            } else {
-                panel.classList.remove('active');
-                toggleBtn.classList.remove('active');
-                toggleBtn.innerHTML = '<i>≡</i>';
-                toggleBtn.title = 'Показать управление';
-            }
         }
 
         // === МОДАЛЬНОЕ ОКНО С ГОРЯЧИМИ КЛАВИШАМИ ===
@@ -1271,18 +1086,12 @@
                             e.preventDefault();
                             toggleFullscreen();
                             break;
-                        case 'Tab':
-                            e.preventDefault();
-                            toggleNavigationPanel();
-                            break;
                         case 'Escape':
                             if (document.getElementById('hotkeysModal').classList.contains('active')) {
                                 hideHotkeys();
                                 e.preventDefault();
                             } else if (document.fullscreenElement) {
                                 document.exitFullscreen();
-                            } else if (isNavPanelOpen) {
-                                toggleNavigationPanel();
                             }
                             break;
                     }
@@ -1295,15 +1104,7 @@
             
             document.addEventListener('fullscreenchange', () => {
                 setTimeout(updateStateFromCanvas, 100);
-                updateFullscreenButton();
             });
-        }
-
-        function updateFullscreenButton() {
-            const fullscreenBtn = document.querySelector('.nav-fullscreen i');
-            if (fullscreenBtn) {
-                fullscreenBtn.textContent = document.fullscreenElement ? '×' : '⛶';
-            }
         }
 
         function easeOutCubic(t) {
@@ -1313,10 +1114,8 @@
         // === ЗАПУСК ПРИЛОЖЕНИЯ ===
         document.addEventListener('DOMContentLoaded', () => {
             init();
-            
-            // Обновляем кнопку полноэкранного режима при загрузке
-            setTimeout(updateFullscreenButton, 500);
         });
     </script>
 </body>
 </html>
+```
